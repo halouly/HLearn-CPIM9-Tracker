@@ -282,26 +282,35 @@ a:hover{text-decoration:underline}
 </div>
 
 <script>
-// ========== USER CREDENTIALS (embedded from CSV) ==========
-const USERS_CSV = `email,password
-hala.elouarrak@toronto.ascm.org,Teitoklein1124
-student@cpim.com,cpim2024
-admin@hlearn.com,admin456`;
+// ========== USER CREDENTIALS (loaded from external CSV) ==========
+let validUsers = {};
+let usersLoaded = false;
 
-function parseUsersCSV(csv) {
-  const lines = csv.trim().split('\n');
-  const users = {};
-  for (let i = 1; i < lines.length; i++) {
-    const [email, password] = lines[i].split(',').map(s => s.trim());
-    if (email && password) users[email.toLowerCase()] = password;
+async function loadUsersCSV() {
+  try {
+    const response = await fetch('users.csv');
+    if (!response.ok) throw new Error('CSV not found');
+    const csv = await response.text();
+    const lines = csv.trim().split('\n');
+    for (let i = 1; i < lines.length; i++) {
+      const [email, password] = lines[i].split(',').map(s => s.trim());
+      if (email && password) validUsers[email.toLowerCase()] = password;
+    }
+    usersLoaded = true;
+  } catch (e) {
+    console.error('Failed to load users.csv:', e);
+    document.getElementById('loginError').textContent = 'Error: users.csv not found. Place it in the same folder as this HTML file.';
+    document.getElementById('loginError').classList.add('show');
   }
-  return users;
 }
 
-const validUsers = parseUsersCSV(USERS_CSV);
 let currentUser = null;
 
-function attemptLogin() {
+async function attemptLogin() {
+  if (!usersLoaded) {
+    await loadUsersCSV();
+  }
+  
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
   const errorEl = document.getElementById('loginError');
@@ -312,6 +321,7 @@ function attemptLogin() {
     errorEl.classList.remove('show');
     showApp();
   } else {
+    errorEl.textContent = 'Invalid email or password';
     errorEl.classList.add('show');
     document.getElementById('loginPassword').value = '';
   }
@@ -334,7 +344,8 @@ function logout() {
   document.getElementById('loginError').classList.remove('show');
 }
 
-function checkSession() {
+async function checkSession() {
+  await loadUsersCSV();
   const savedUser = localStorage.getItem('cpim9_user');
   if (savedUser && validUsers[savedUser]) {
     currentUser = savedUser;
