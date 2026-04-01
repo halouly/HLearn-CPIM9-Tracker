@@ -229,6 +229,49 @@ a:hover{text-decoration:underline}
 .user-info .user-email{color:var(--accent);font-weight:500}
 .btn-logout{border-color:var(--orange);color:var(--orange)}
 .btn-logout:hover{background:rgba(255,169,77,.1)}
+/* Admin Panel */
+.admin-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10001;display:flex;align-items:center;justify-content:center}
+.admin-panel-overlay.hidden{display:none}
+.admin-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:600px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.admin-panel h2{font-size:20px;font-weight:700;color:var(--text-bright);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.admin-panel h2 .admin-badge{font-size:10px;background:var(--red);color:#fff;padding:2px 8px;border-radius:4px}
+.admin-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-dim);font-size:24px;cursor:pointer}
+.admin-section{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.admin-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.admin-section h3{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px}
+.admin-users-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.admin-user-row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border)}
+.admin-user-row .email{flex:1;font-size:13px;color:var(--text)}
+.admin-user-row .role{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--accent-dim);color:var(--accent)}
+.admin-user-row .role.admin{background:var(--red);color:#fff}
+.admin-user-row .btn-delete{background:none;border:1px solid var(--red);color:var(--red);padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer}
+.admin-user-row .btn-delete:hover{background:rgba(255,107,107,.1)}
+.admin-add-form{display:flex;flex-direction:column;gap:12px}
+.admin-add-row{display:flex;gap:8px}
+.admin-add-row input{flex:1;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-bright);font-family:'Outfit',sans-serif;font-size:13px}
+.admin-add-row input:focus{outline:none;border-color:var(--accent)}
+.admin-add-row select{padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-bright);font-family:'Outfit',sans-serif;font-size:13px}
+.admin-btn{padding:10px 20px;border-radius:6px;border:none;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.admin-btn.primary{background:var(--accent);color:#fff}
+.admin-btn.primary:hover{opacity:.9}
+.admin-btn.secondary{background:var(--bg-card);border:1px solid var(--border);color:var(--text)}
+.admin-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+.admin-btn.commit{background:var(--green);color:#fff}
+.admin-btn.commit:hover{opacity:.9}
+.admin-token-section{margin-top:16px;padding:16px;background:var(--bg-deep);border-radius:8px;border:1px solid var(--border)}
+.admin-token-section label{font-size:12px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:8px}
+.admin-token-section input{width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-bright);font-family:'JetBrains Mono',monospace;font-size:12px}
+.admin-token-section input:focus{outline:none;border-color:var(--accent)}
+.admin-token-help{font-size:11px;color:var(--text-dim);margin-top:8px}
+.admin-token-help a{color:var(--accent)}
+.admin-status{padding:12px;border-radius:6px;font-size:13px;margin-top:12px}
+.admin-status.success{background:rgba(81,207,102,.1);border:1px solid var(--green);color:var(--green)}
+.admin-status.error{background:rgba(255,107,107,.1);border:1px solid var(--red);color:var(--red)}
+.admin-status.hidden{display:none}
+.admin-repo-info{display:flex;gap:8px;margin-bottom:12px}
+.admin-repo-info input{flex:1;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-bright);font-family:'JetBrains Mono',monospace;font-size:12px}
+.btn-admin{border-color:var(--purple);color:var(--purple)}
+.btn-admin:hover{background:rgba(177,151,252,.1)}
 </style>
 </head>
 <body>
@@ -265,6 +308,7 @@ a:hover{text-decoration:underline}
   </div>
   <div class="top-actions">
     <span class="user-info">👤 <span class="user-email" id="userEmail"></span></span>
+    <button class="btn-sm btn-admin" id="adminBtn" onclick="openAdminPanel()" style="display:none">⚙️ Users</button>
     <button class="btn-sm btn-logout" onclick="logout()">Logout</button>
     <button class="btn-sm theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌓</button>
     <button class="btn-sm" onclick="collapseAll()">Collapse</button>
@@ -281,9 +325,62 @@ a:hover{text-decoration:underline}
 <main class="main" id="mainContent"></main>
 </div>
 
+<!-- Admin Panel Modal -->
+<div class="admin-panel-overlay hidden" id="adminPanelOverlay" onclick="if(event.target===this)closeAdminPanel()">
+  <div class="admin-panel">
+    <h2>👥 User Management <span class="admin-badge">ADMIN</span></h2>
+    
+    <div class="admin-section">
+      <h3>Current Users</h3>
+      <div class="admin-users-list" id="adminUsersList"></div>
+    </div>
+    
+    <div class="admin-section">
+      <h3>Add New User</h3>
+      <div class="admin-add-form">
+        <div class="admin-add-row">
+          <input type="email" id="newUserEmail" placeholder="email@example.com">
+          <input type="text" id="newUserPassword" placeholder="password">
+          <select id="newUserRole">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button class="admin-btn primary" onclick="addUser()">+ Add User</button>
+      </div>
+    </div>
+    
+    <div class="admin-section">
+      <h3>💾 Commit to GitHub</h3>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Push changes to your repository so they persist.</p>
+      
+      <div class="admin-repo-info">
+        <input type="text" id="repoOwner" placeholder="github-username">
+        <input type="text" id="repoName" placeholder="repo-name">
+        <input type="text" id="repoBranch" placeholder="branch (main)">
+      </div>
+      
+      <div class="admin-token-section">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
+        <div class="admin-token-help">
+          Need a token? <a href="https://github.com/settings/tokens/new?scopes=repo&description=CPIM%20Tracker" target="_blank">Create one here</a> (select 'repo' scope)
+        </div>
+      </div>
+      
+      <button class="admin-btn commit" onclick="commitToGitHub()" style="margin-top:12px;width:100%">🚀 Commit & Push users.csv</button>
+      <div class="admin-status hidden" id="adminStatus"></div>
+    </div>
+    
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+      <button class="admin-btn secondary" onclick="closeAdminPanel()">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ========== USER CREDENTIALS (loaded from external CSV) ==========
-let validUsers = {};
+let validUsers = {}; // {email: {password, role}}
 let usersLoaded = false;
 
 async function loadUsersCSV() {
@@ -291,11 +388,7 @@ async function loadUsersCSV() {
     const response = await fetch('users.csv');
     if (!response.ok) throw new Error('CSV not found');
     const csv = await response.text();
-    const lines = csv.trim().split('\n');
-    for (let i = 1; i < lines.length; i++) {
-      const [email, password] = lines[i].split(',').map(s => s.trim());
-      if (email && password) validUsers[email.toLowerCase()] = password;
-    }
+    parseCSV(csv);
     usersLoaded = true;
   } catch (e) {
     console.error('Failed to load users.csv:', e);
@@ -304,7 +397,36 @@ async function loadUsersCSV() {
   }
 }
 
+function parseCSV(csv) {
+  validUsers = {};
+  const lines = csv.trim().split('\n');
+  const header = lines[0].toLowerCase();
+  const hasRole = header.includes('role');
+  
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',').map(s => s.trim());
+    const email = parts[0];
+    const password = parts[1];
+    const role = hasRole && parts[2] ? parts[2].toLowerCase() : 'user';
+    if (email && password) {
+      validUsers[email.toLowerCase()] = { password, role };
+    }
+  }
+}
+
+function generateCSV() {
+  let csv = 'email,password,role\n';
+  for (const [email, data] of Object.entries(validUsers)) {
+    csv += `${email},${data.password},${data.role}\n`;
+  }
+  return csv.trim();
+}
+
 let currentUser = null;
+
+function isAdmin() {
+  return currentUser && validUsers[currentUser] && validUsers[currentUser].role === 'admin';
+}
 
 async function attemptLogin() {
   if (!usersLoaded) {
@@ -315,7 +437,7 @@ async function attemptLogin() {
   const password = document.getElementById('loginPassword').value;
   const errorEl = document.getElementById('loginError');
   
-  if (validUsers[email] && validUsers[email] === password) {
+  if (validUsers[email] && validUsers[email].password === password) {
     currentUser = email;
     localStorage.setItem('cpim9_user', email);
     errorEl.classList.remove('show');
@@ -331,7 +453,145 @@ function showApp() {
   document.getElementById('loginOverlay').classList.add('hidden');
   document.getElementById('appContainer').classList.add('visible');
   document.getElementById('userEmail').textContent = currentUser;
+  
+  // Show admin button if admin
+  const adminBtn = document.getElementById('adminBtn');
+  if (isAdmin()) {
+    adminBtn.style.display = 'inline-block';
+  } else {
+    adminBtn.style.display = 'none';
+  }
+  
   initApp();
+}
+
+// ========== ADMIN PANEL ==========
+function openAdminPanel() {
+  if (!isAdmin()) return;
+  document.getElementById('adminPanelOverlay').classList.remove('hidden');
+  renderUsersList();
+}
+
+function closeAdminPanel() {
+  document.getElementById('adminPanelOverlay').classList.add('hidden');
+  document.getElementById('adminStatus').classList.add('hidden');
+}
+
+function renderUsersList() {
+  const list = document.getElementById('adminUsersList');
+  let html = '';
+  
+  for (const [email, data] of Object.entries(validUsers)) {
+    const isCurrentUser = email === currentUser;
+    html += `<div class="admin-user-row">
+      <span class="email">${email}</span>
+      <span class="role ${data.role}">${data.role.toUpperCase()}</span>
+      ${!isCurrentUser ? `<button class="btn-delete" onclick="deleteUser('${email}')">Delete</button>` : '<span style="font-size:11px;color:var(--text-dim)">(you)</span>'}
+    </div>`;
+  }
+  
+  list.innerHTML = html || '<p style="color:var(--text-dim);font-size:13px">No users found</p>';
+}
+
+function addUser() {
+  const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
+  const password = document.getElementById('newUserPassword').value.trim();
+  const role = document.getElementById('newUserRole').value;
+  
+  if (!email || !password) {
+    showAdminStatus('Email and password required', 'error');
+    return;
+  }
+  
+  if (validUsers[email]) {
+    showAdminStatus('User already exists', 'error');
+    return;
+  }
+  
+  validUsers[email] = { password, role };
+  document.getElementById('newUserEmail').value = '';
+  document.getElementById('newUserPassword').value = '';
+  renderUsersList();
+  showAdminStatus('User added (commit to save permanently)', 'success');
+}
+
+function deleteUser(email) {
+  if (email === currentUser) {
+    showAdminStatus("Can't delete yourself", 'error');
+    return;
+  }
+  
+  if (confirm(`Delete user ${email}?`)) {
+    delete validUsers[email];
+    renderUsersList();
+    showAdminStatus('User deleted (commit to save permanently)', 'success');
+  }
+}
+
+function showAdminStatus(msg, type) {
+  const status = document.getElementById('adminStatus');
+  status.textContent = msg;
+  status.className = 'admin-status ' + type;
+}
+
+async function commitToGitHub() {
+  const owner = document.getElementById('repoOwner').value.trim();
+  const repo = document.getElementById('repoName').value.trim();
+  const branch = document.getElementById('repoBranch').value.trim() || 'main';
+  const token = document.getElementById('githubToken').value.trim();
+  
+  if (!owner || !repo || !token) {
+    showAdminStatus('Fill in owner, repo name, and token', 'error');
+    return;
+  }
+  
+  const csvContent = generateCSV();
+  const path = 'users.csv';
+  
+  try {
+    showAdminStatus('Fetching current file...', 'success');
+    
+    // Get current file SHA (needed for update)
+    let sha = null;
+    try {
+      const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`, {
+        headers: { 'Authorization': `token ${token}` }
+      });
+      if (getRes.ok) {
+        const data = await getRes.json();
+        sha = data.sha;
+      }
+    } catch (e) { /* file doesn't exist yet, that's fine */ }
+    
+    showAdminStatus('Committing...', 'success');
+    
+    // Commit the file
+    const body = {
+      message: `Update users.csv via CPIM Tracker admin panel`,
+      content: btoa(csvContent), // base64 encode
+      branch: branch
+    };
+    if (sha) body.sha = sha;
+    
+    const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    
+    if (putRes.ok) {
+      showAdminStatus('✓ Committed successfully!', 'success');
+      document.getElementById('githubToken').value = ''; // Clear token
+    } else {
+      const err = await putRes.json();
+      showAdminStatus(`Error: ${err.message}`, 'error');
+    }
+  } catch (e) {
+    showAdminStatus(`Error: ${e.message}`, 'error');
+  }
 }
 
 function logout() {
