@@ -1,4 +1,5 @@
-email,password
-hala.elouarrak@toronto.ascm.org,Teitoklein1124
-student-88@cpim.com,cpim@2024
-admin@hlearn.com,admin456
+email,password,role
+hala.elouarrak@toronto.ascm.org,Teitoklein1124,admin
+student@cpim.com,cpim2024,user
+student-88@cpim.com,cpim@2024, user
+admin@hlearn.com,admin456, user
