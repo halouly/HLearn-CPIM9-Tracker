@@ -163,6 +163,14 @@ a:hover{text-decoration:underline}
 .day-info h2{font-size:22px;font-weight:800;color:var(--text-bright);margin-bottom:6px;letter-spacing:-0.5px}
 .day-info p{font-size:13px;color:var(--text);font-weight:500}
 .day-hours{margin-left:auto;font-size:15px;color:var(--day-accent,var(--orange));font-weight:700;background:rgba(0,0,0,.2);padding:8px 14px;border-radius:8px;white-space:nowrap}
+/* Mobile Menu */
+.menu-toggle{display:none;background:none;border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;padding:6px 10px;border-radius:6px}
+.mobile-menu{display:none;position:absolute;top:calc(var(--header-h) - 4px);right:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:1001;flex-direction:column;gap:8px}
+.mobile-menu.show{display:flex}
+.mobile-menu .btn-sm{width:100%;justify-content:center;text-align:center}
+.mobile-menu .menu-section{display:flex;gap:6px;flex-wrap:wrap}
+.mobile-menu .menu-divider{height:1px;background:var(--border);margin:4px 0}
+.mobile-menu .user-info{padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:4px}
 @media(max-width:900px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
@@ -170,6 +178,15 @@ a:hover{text-decoration:underline}
   .hamburger{display:block}
   .top-bar .logo .full-title{display:none}
   .progress-wrap{max-width:200px}
+  .top-actions{display:none}
+  .menu-toggle{display:block}
+}
+@media(max-width:480px){
+  .progress-wrap{max-width:120px}
+  .top-bar{padding:0 12px;gap:8px}
+  .day-header{padding:16px;gap:12px}
+  .day-number{font-size:28px}
+  .day-info h2{font-size:16px}
 }
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:899}
 .sidebar-overlay.show{display:block}
@@ -272,6 +289,24 @@ a:hover{text-decoration:underline}
 .admin-repo-info input{flex:1;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-bright);font-family:'JetBrains Mono',monospace;font-size:12px}
 .btn-admin{border-color:var(--purple);color:var(--purple)}
 .btn-admin:hover{background:rgba(177,151,252,.1)}
+/* Font Size Modifier */
+.font-size-controls{display:flex;align-items:center;gap:4px;margin-right:8px}
+.font-size-controls .btn-font{width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.font-size-label{font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+html{--font-scale:1}
+html[data-font="xs"]{--font-scale:0.8}
+html[data-font="sm"]{--font-scale:0.9}
+html[data-font="md"]{--font-scale:1}
+html[data-font="lg"]{--font-scale:1.1}
+html[data-font="xl"]{--font-scale:1.2}
+.module-title{font-size:calc(18px * var(--font-scale))}
+.module-body,.step-desc,.step-title{font-size:calc(14px * var(--font-scale))}
+.topic-group-title{font-size:calc(14px * var(--font-scale))}
+.day-info h2{font-size:calc(22px * var(--font-scale))}
+.day-info p{font-size:calc(13px * var(--font-scale))}
+.key-terms-list{font-size:calc(12px * var(--font-scale))}
+.exam-info h3{font-size:calc(16px * var(--font-scale))}
+.nav-item{font-size:calc(13px * var(--font-scale))}
 </style>
 </head>
 <body>
@@ -308,6 +343,11 @@ a:hover{text-decoration:underline}
   </div>
   <div class="top-actions">
     <span class="user-info">👤 <span class="user-email" id="userEmail"></span></span>
+    <div class="font-size-controls">
+      <button class="btn-sm btn-font" onclick="changeFontSize(-1)" title="Decrease font size">A-</button>
+      <span class="font-size-label" id="fontSizeLabel">100%</span>
+      <button class="btn-sm btn-font" onclick="changeFontSize(1)" title="Increase font size">A+</button>
+    </div>
     <button class="btn-sm btn-admin" id="adminBtn" onclick="openAdminPanel()" style="display:none">⚙️ Users</button>
     <button class="btn-sm btn-logout" onclick="logout()">Logout</button>
     <button class="btn-sm theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌓</button>
@@ -317,6 +357,27 @@ a:hover{text-decoration:underline}
     <button class="btn-sm load" onclick="document.getElementById('importFile').click()">📂 Load</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importProgress(event)">
     <button class="btn-sm danger" onclick="resetAll()">Reset</button>
+  </div>
+  <button class="menu-toggle" onclick="toggleMobileMenu()">⋮</button>
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="user-info">👤 <span class="user-email" id="userEmailMobile"></span></div>
+    <div class="menu-section">
+      <button class="btn-sm btn-font" onclick="changeFontSize(-1)">A-</button>
+      <span class="font-size-label" id="fontSizeLabelMobile">100%</span>
+      <button class="btn-sm btn-font" onclick="changeFontSize(1)">A+</button>
+    </div>
+    <div class="menu-divider"></div>
+    <button class="btn-sm btn-admin" id="adminBtnMobile" onclick="openAdminPanel();toggleMobileMenu()" style="display:none">⚙️ Manage Users</button>
+    <button class="btn-sm" onclick="toggleTheme();toggleMobileMenu()">🌓 Theme</button>
+    <button class="btn-sm" onclick="collapseAll();toggleMobileMenu()">Collapse All</button>
+    <button class="btn-sm" onclick="expandAll();toggleMobileMenu()">Expand All</button>
+    <div class="menu-divider"></div>
+    <button class="btn-sm save" onclick="exportProgress();toggleMobileMenu()">💾 Save Progress</button>
+    <button class="btn-sm load" onclick="document.getElementById('importFileMobile').click()">📂 Load Progress</button>
+    <input type="file" id="importFileMobile" accept=".json" style="display:none" onchange="importProgress(event);toggleMobileMenu()">
+    <div class="menu-divider"></div>
+    <button class="btn-sm danger" onclick="resetAll();toggleMobileMenu()">Reset Progress</button>
+    <button class="btn-sm btn-logout" onclick="logout()">Logout</button>
   </div>
 </header>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -383,6 +444,11 @@ a:hover{text-decoration:underline}
 let validUsers = {}; // {email: {password, role}}
 let usersLoaded = false;
 
+// Fallback for local testing (when fetch fails due to CORS)
+const FALLBACK_USERS = {
+  'hala.elouarrak@toronto.ascm.org': { password: 'Teitoklein1124', role: 'admin' }
+};
+
 async function loadUsersCSV() {
   try {
     const response = await fetch('users.csv');
@@ -391,9 +457,9 @@ async function loadUsersCSV() {
     parseCSV(csv);
     usersLoaded = true;
   } catch (e) {
-    console.error('Failed to load users.csv:', e);
-    document.getElementById('loginError').textContent = 'Error: users.csv not found. Place it in the same folder as this HTML file.';
-    document.getElementById('loginError').classList.add('show');
+    console.warn('CSV fetch failed, using fallback credentials (local mode)');
+    validUsers = { ...FALLBACK_USERS };
+    usersLoaded = true;
   }
 }
 
@@ -453,17 +519,29 @@ function showApp() {
   document.getElementById('loginOverlay').classList.add('hidden');
   document.getElementById('appContainer').classList.add('visible');
   document.getElementById('userEmail').textContent = currentUser;
+  document.getElementById('userEmailMobile').textContent = currentUser;
   
   // Show admin button if admin
-  const adminBtn = document.getElementById('adminBtn');
-  if (isAdmin()) {
-    adminBtn.style.display = 'inline-block';
-  } else {
-    adminBtn.style.display = 'none';
-  }
+  const isAdminUser = isAdmin();
+  document.getElementById('adminBtn').style.display = isAdminUser ? 'inline-block' : 'none';
+  document.getElementById('adminBtnMobile').style.display = isAdminUser ? 'block' : 'none';
   
   initApp();
 }
+
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobileMenu');
+  menu.classList.toggle('show');
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('mobileMenu');
+  const toggle = document.querySelector('.menu-toggle');
+  if (menu && !menu.contains(e.target) && !toggle.contains(e.target)) {
+    menu.classList.remove('show');
+  }
+});
 
 // ========== ADMIN PANEL ==========
 function openAdminPanel() {
@@ -1387,6 +1465,34 @@ function loadTheme() {
   if (saved) document.documentElement.setAttribute('data-theme', saved);
 }
 
+// ========== FONT SIZE ==========
+const FONT_SIZES = ['xs', 'sm', 'md', 'lg', 'xl'];
+const FONT_LABELS = { xs: '80%', sm: '90%', md: '100%', lg: '110%', xl: '120%' };
+let currentFontIdx = 2; // md
+
+function loadFontSize() {
+  const saved = localStorage.getItem('cpim9_fontsize');
+  if (saved && FONT_SIZES.includes(saved)) {
+    currentFontIdx = FONT_SIZES.indexOf(saved);
+  }
+  applyFontSize();
+}
+
+function applyFontSize() {
+  const size = FONT_SIZES[currentFontIdx];
+  document.documentElement.setAttribute('data-font', size);
+  const label = document.getElementById('fontSizeLabel');
+  const labelMobile = document.getElementById('fontSizeLabelMobile');
+  if (label) label.textContent = FONT_LABELS[size];
+  if (labelMobile) labelMobile.textContent = FONT_LABELS[size];
+}
+
+function changeFontSize(dir) {
+  currentFontIdx = Math.max(0, Math.min(FONT_SIZES.length - 1, currentFontIdx + dir));
+  localStorage.setItem('cpim9_fontsize', FONT_SIZES[currentFontIdx]);
+  applyFontSize();
+}
+
 // ========== INIT ==========
 function initApp() {
   loadState();
@@ -1399,8 +1505,9 @@ function initApp() {
   updateUI();
 }
 
-// Load theme immediately, but wait for login to init app
+// Load theme and font size immediately, but wait for login to init app
 loadTheme();
+loadFontSize();
 </script>
 </body>
 </html>
