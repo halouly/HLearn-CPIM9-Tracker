@@ -1171,7 +1171,19 @@ function saveNote(id) {
   saveState();
   const saved = document.getElementById('note_saved_'+id);
   if (saved) { saved.classList.add('show'); setTimeout(() => saved.classList.remove('show'), 1500); }
-  updateUI();
+  // Update UI elements without full re-render to preserve focus
+  const checkEl = document.querySelector(`.step-check[onclick="toggleCheck('${id}')"]`);
+  if (checkEl) {
+    if (val) checkEl.classList.add('has-note');
+    else checkEl.classList.remove('has-note');
+  }
+  const btnEl = document.getElementById('note_btn_'+id);
+  if (btnEl) {
+    if (val) { btnEl.classList.add('has-note'); btnEl.innerHTML = '📝 Note'; }
+    else { btnEl.classList.remove('has-note'); btnEl.innerHTML = '📝'; }
+  }
+  renderSidebar();
+  updateProgress();
 }
 
 function toggleNote(id) {
