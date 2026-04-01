@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPIM 9.0 Study Tracker — Flexible Duration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#0a0c10;--bg-surface:#11141b;--bg-card:#181c27;--bg-card-hover:#1e2332;
+  --border:#252a3a;--border-bright:#3a4158;
+  --text:#d4d8e8;--text-dim:#7a819a;--text-bright:#f0f2fa;
+  --accent:#8b5cf6;--accent-glow:#8b5cf633;--accent-dim:#4c1d95;
+  --red:#ff6b6b;--orange:#ffa94d;--green:#51cf66;--blue:#5c9dff;--purple:#b197fc;
+  --yellow:#ffd43b;--teal:#2dd4bf;
+  --sidebar-w:300px;--header-h:60px;
+  --mod1:#1a1f3a;--mod2:#1a2a2a;--mod3:#2a1a2a;--mod4:#1a2530;--mod5:#252a1a;--mod6:#2a2a1a;--mod7:#2a1a1a;--mod8:#1a2a1a;--mod9:#2a1a2a;
+  --mod1-border:#4f46e5;--mod2-border:#14b8a6;--mod3-border:#a855f7;--mod4-border:#0ea5e9;--mod5-border:#84cc16;--mod6-border:#eab308;--mod7-border:#ef4444;--mod8-border:#22c55e;--mod9-border:#ec4899;
+}
+[data-theme="light"]{
+  --bg-deep:#f5f7fa;--bg-surface:#ffffff;--bg-card:#f0f2f5;--bg-card-hover:#e8eaed;
+  --border:#d0d5dd;--border-bright:#b0b5bd;
+  --text:#1a1a2e;--text-dim:#5a5a7a;--text-bright:#0a0a1e;
+  --accent:#7c3aed;--accent-glow:#7c3aed22;--accent-dim:#ddd6fe;
+  --red:#dc2626;--orange:#ea580c;--green:#16a34a;--blue:#2563eb;--purple:#7c3aed;
+  --yellow:#ca8a04;--teal:#0d9488;
+  --mod1:#eef2ff;--mod2:#f0fdfa;--mod3:#faf5ff;--mod4:#f0f9ff;--mod5:#f7fee7;--mod6:#fefce8;--mod7:#fef2f2;--mod8:#f0fdf4;--mod9:#fdf2f8;
+  --mod1-border:#6366f1;--mod2-border:#14b8a6;--mod3-border:#a855f7;--mod4-border:#0ea5e9;--mod5-border:#84cc16;--mod6-border:#eab308;--mod7-border:#ef4444;--mod8-border:#22c55e;--mod9-border:#ec4899;
+}
+html{scroll-behavior:smooth;background:var(--bg-deep)}
+body{font-family:'Outfit',sans-serif;color:var(--text);background:var(--bg-deep);line-height:1.65;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.top-bar{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;z-index:1000;gap:16px}
+.top-bar .logo{font-weight:800;font-size:15px;color:var(--text-bright);white-space:nowrap;display:flex;align-items:center;gap:8px}
+.top-bar .logo span{color:var(--accent)}
+.top-bar .logo .badge{font-size:10px;background:var(--accent-dim);color:var(--accent);padding:2px 7px;border-radius:4px;font-weight:600;letter-spacing:.5px}
+.top-bar .logo .new-badge{font-size:9px;background:#22c55e;color:#fff;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:4px}
+.progress-wrap{flex:1;max-width:480px;display:flex;align-items:center;gap:12px}
+.progress-bar-outer{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width .5s}
+.progress-text{font-size:13px;color:var(--text-dim);font-weight:500;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.top-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.btn-sm{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-dim);font-size:12px;font-family:'Outfit',sans-serif;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm.danger:hover{border-color:var(--red);color:var(--red)}
+.btn-sm.save{border-color:var(--green);color:var(--green)}
+.btn-sm.load{border-color:var(--blue);color:var(--blue)}
+.btn-sm.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg-card);border:1px solid var(--border);color:var(--text-bright);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:500;z-index:9999;opacity:0;transition:all .35s ease;pointer-events:none;display:flex;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green)}.toast.success .toast-icon{color:var(--green)}
+.toast.error{border-color:var(--red)}.toast.error .toast-icon{color:var(--red)}
+.toast.info{border-color:var(--blue)}.toast.info .toast-icon{color:var(--blue)}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px}
+.sidebar{position:fixed;top:var(--header-h);left:0;width:var(--sidebar-w);height:calc(100vh - var(--header-h));background:var(--bg-surface);border-right:1px solid var(--border);overflow-y:auto;z-index:900;padding:16px 0;transition:transform .3s}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sidebar .nav-section{padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);margin-top:8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;color:var(--text-dim);cursor:pointer;transition:all .15s;border-left:2px solid transparent;font-weight:400}
+.nav-item:hover{background:var(--bg-card);color:var(--text)}
+.nav-item.completed .nav-check{color:var(--green)}
+.nav-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .3s}
+.nav-item.completed .nav-check{border-color:var(--green);background:var(--green);color:var(--bg-deep)}
+.nav-pct{margin-left:auto;font-size:11px;font-family:'JetBrains Mono',monospace;opacity:.6}
+.day-label{font-size:9px;background:var(--purple);color:var(--bg-deep);padding:1px 5px;border-radius:3px;margin-left:auto;font-weight:600}
+.note-count{font-size:10px;color:var(--orange);margin-left:4px}
+.main{margin-left:var(--sidebar-w);margin-top:var(--header-h);padding:32px 40px 80px;max-width:1000px}
+.module{margin-bottom:40px;border:1px solid var(--border);border-radius:12px;background:var(--bg-surface);overflow:hidden}
+.module[data-mod="1"]{background:var(--mod1);border-color:var(--mod1-border)}
+.module[data-mod="2"]{background:var(--mod2);border-color:var(--mod2-border)}
+.module[data-mod="3"]{background:var(--mod3);border-color:var(--mod3-border)}
+.module[data-mod="4"]{background:var(--mod4);border-color:var(--mod4-border)}
+.module[data-mod="5"]{background:var(--mod5);border-color:var(--mod5-border)}
+.module[data-mod="6"]{background:var(--mod6);border-color:var(--mod6-border)}
+.module[data-mod="7"]{background:var(--mod7);border-color:var(--mod7-border)}
+.module[data-mod="8"]{background:var(--mod8);border-color:var(--mod8-border)}
+.module[data-mod="9"]{background:var(--mod9);border-color:var(--mod9-border)}
+.module[data-mod="practice"]{background:var(--bg-card);border-color:var(--yellow)}
+.module[data-mod="gap"]{background:var(--bg-card);border-color:var(--red)}
+.module[data-mod="final"]{background:var(--bg-card);border-color:var(--green)}
+.module-header{padding:20px 24px;cursor:pointer;display:flex;align-items:center;gap:16px;transition:background .2s;user-select:none}
+.module-header:hover{background:var(--bg-card)}
+.module-number{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--bg-deep);background:var(--accent);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.module.completed .module-number{background:var(--green)}
+.module-title{font-size:18px;font-weight:700;color:var(--text-bright);flex:1}
+.module-meta{display:flex;align-items:center;gap:12px}
+.module-pct{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-dim)}
+.module-mini-bar{width:60px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.module-mini-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
+.module.completed .module-mini-bar-fill{background:var(--green)}
+.module-chevron{color:var(--text-dim);font-size:18px;transition:transform .3s}
+.module.open .module-chevron{transform:rotate(180deg)}
+.module-body{display:none;padding:0 24px 24px;border-top:1px solid var(--border)}
+.module.open .module-body{display:block}
+.module-weight{font-size:11px;background:var(--orange);color:var(--bg-deep);padding:2px 6px;border-radius:4px;font-weight:600}
+.topic-group{margin-top:16px}
+.topic-group-title{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.step:last-child{border-bottom:none}
+.step-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-bright);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:2px;transition:all .2s;font-size:13px;color:transparent;position:relative}
+.step-check:hover{border-color:var(--accent);background:var(--accent-glow)}
+.step-check.checked{border-color:var(--green);background:var(--green);color:var(--bg-deep)}
+.step-check.has-note::after{content:'';position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--orange);border-radius:50%;border:2px solid var(--bg-surface)}
+.step-content{flex:1;min-width:0}
+.step-content.checked-text{opacity:.55}
+.step-content.checked-text .step-title{text-decoration:line-through;text-decoration-color:var(--text-dim)}
+.step-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.step-title{font-weight:600;font-size:14px;color:var(--text-bright)}
+.step-desc{font-size:13px;color:var(--text-dim);line-height:1.6}
+.tag{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;margin-left:4px}
+.tag.high{background:var(--red);color:#fff}
+.tag.medium{background:var(--orange);color:var(--bg-deep)}
+.tag.formula{background:var(--purple);color:#fff}
+.tag.new{background:var(--teal);color:var(--bg-deep)}
+.key-terms{margin-top:8px;padding:8px 12px;background:var(--bg-card);border-radius:6px;border-left:3px solid var(--blue)}
+.key-terms-label{font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.key-terms-list{font-size:12px;color:var(--text);line-height:1.8}
+.key-terms-list .term{display:inline-block;background:var(--bg-deep);padding:2px 8px;border-radius:4px;margin:2px 4px 2px 0;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11px}
+.note-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-size:12px;padding:2px 8px;border-radius:5px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0}
+.note-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.note-btn.has-note{border-color:var(--orange);color:var(--orange)}
+.note-btn.open{border-color:var(--accent);color:var(--accent)}
+.note-area{margin-top:8px;display:none}
+.note-area.open{display:block}
+.note-area textarea{width:100%;min-height:60px;max-height:200px;padding:10px 12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;line-height:1.5;resize:vertical;outline:none;transition:border-color .2s}
+.note-area textarea:focus{border-color:var(--accent)}
+.note-area textarea::placeholder{color:var(--text-dim);opacity:.5}
+.note-saved{font-size:11px;color:var(--green);margin-top:4px;opacity:0;transition:opacity .3s}
+.note-saved.show{opacity:1}
+.day-header{background:linear-gradient(135deg,var(--day-bg-start),var(--day-bg-end));border:2px solid var(--day-border);border-radius:14px;padding:24px 28px;margin-bottom:28px;display:flex;align-items:center;gap:20px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.day-header[data-day="1"]{--day-bg-start:#1e3a5f;--day-bg-end:#0d1f33;--day-border:#3b82f6;--day-accent:#60a5fa}
+.day-header[data-day="2"]{--day-bg-start:#1e4d4d;--day-bg-end:#0d2626;--day-border:#14b8a6;--day-accent:#2dd4bf}
+.day-header[data-day="3"]{--day-bg-start:#4a1e5c;--day-bg-end:#2a0d33;--day-border:#a855f7;--day-accent:#c084fc}
+.day-header[data-day="4"]{--day-bg-start:#5c1e1e;--day-bg-end:#330d0d;--day-border:#ef4444;--day-accent:#f87171}
+.day-header[data-day="5"]{--day-bg-start:#5c4a1e;--day-bg-end:#332a0d;--day-border:#f59e0b;--day-accent:#fbbf24}
+.day-header[data-day="6"]{--day-bg-start:#1e5c3a;--day-bg-end:#0d3320;--day-border:#22c55e;--day-accent:#4ade80}
+.day-header[data-day="7"]{--day-bg-start:#5c1e4a;--day-bg-end:#330d26;--day-border:#ec4899;--day-accent:#f472b6}
+.day-header[data-day="8"]{--day-bg-start:#1e2e5c;--day-bg-end:#0d1833;--day-border:#6366f1;--day-accent:#818cf8}
+.day-header[data-day="9"]{--day-bg-start:#3a5c1e;--day-bg-end:#203a0d;--day-border:#84cc16;--day-accent:#a3e635}
+.day-header[data-day="10"]{--day-bg-start:#5c5c1e;--day-bg-end:#33330d;--day-border:#eab308;--day-accent:#facc15}
+.day-header[data-day="11"]{--day-bg-start:#1e3a5f;--day-bg-end:#0d1f33;--day-border:#3b82f6;--day-accent:#60a5fa}
+.day-header[data-day="12"]{--day-bg-start:#1e4d4d;--day-bg-end:#0d2626;--day-border:#14b8a6;--day-accent:#2dd4bf}
+.day-header[data-day="13"]{--day-bg-start:#4a1e5c;--day-bg-end:#2a0d33;--day-border:#a855f7;--day-accent:#c084fc}
+.day-header[data-day="14"]{--day-bg-start:#5c1e1e;--day-bg-end:#330d0d;--day-border:#ef4444;--day-accent:#f87171}
+[data-theme="light"] .day-header[data-day="1"]{--day-bg-start:#dbeafe;--day-bg-end:#eff6ff;--day-border:#3b82f6;--day-accent:#2563eb}
+[data-theme="light"] .day-header[data-day="2"]{--day-bg-start:#ccfbf1;--day-bg-end:#f0fdfa;--day-border:#14b8a6;--day-accent:#0d9488}
+[data-theme="light"] .day-header[data-day="3"]{--day-bg-start:#f3e8ff;--day-bg-end:#faf5ff;--day-border:#a855f7;--day-accent:#9333ea}
+[data-theme="light"] .day-header[data-day="4"]{--day-bg-start:#fee2e2;--day-bg-end:#fef2f2;--day-border:#ef4444;--day-accent:#dc2626}
+[data-theme="light"] .day-header[data-day="5"]{--day-bg-start:#fef3c7;--day-bg-end:#fffbeb;--day-border:#f59e0b;--day-accent:#d97706}
+[data-theme="light"] .day-header[data-day="6"]{--day-bg-start:#dcfce7;--day-bg-end:#f0fdf4;--day-border:#22c55e;--day-accent:#16a34a}
+[data-theme="light"] .day-header[data-day="7"]{--day-bg-start:#fce7f3;--day-bg-end:#fdf2f8;--day-border:#ec4899;--day-accent:#db2777}
+[data-theme="light"] .day-header[data-day="8"]{--day-bg-start:#e0e7ff;--day-bg-end:#eef2ff;--day-border:#6366f1;--day-accent:#4f46e5}
+[data-theme="light"] .day-header[data-day="9"]{--day-bg-start:#ecfccb;--day-bg-end:#f7fee7;--day-border:#84cc16;--day-accent:#65a30d}
+[data-theme="light"] .day-header[data-day="10"]{--day-bg-start:#fef9c3;--day-bg-end:#fefce8;--day-border:#eab308;--day-accent:#ca8a04}
+[data-theme="light"] .day-header[data-day="11"]{--day-bg-start:#dbeafe;--day-bg-end:#eff6ff;--day-border:#3b82f6;--day-accent:#2563eb}
+[data-theme="light"] .day-header[data-day="12"]{--day-bg-start:#ccfbf1;--day-bg-end:#f0fdfa;--day-border:#14b8a6;--day-accent:#0d9488}
+[data-theme="light"] .day-header[data-day="13"]{--day-bg-start:#f3e8ff;--day-bg-end:#faf5ff;--day-border:#a855f7;--day-accent:#9333ea}
+[data-theme="light"] .day-header[data-day="14"]{--day-bg-start:#fee2e2;--day-bg-end:#fef2f2;--day-border:#ef4444;--day-accent:#dc2626}
+.day-number{font-size:42px;font-weight:900;color:var(--day-accent,var(--accent));font-family:'JetBrains Mono',monospace;text-shadow:0 2px 8px rgba(0,0,0,.3);letter-spacing:-2px}
+.day-info h2{font-size:22px;font-weight:800;color:var(--text-bright);margin-bottom:6px;letter-spacing:-0.5px}
+.day-info p{font-size:13px;color:var(--text);font-weight:500}
+.day-hours{margin-left:auto;font-size:15px;color:var(--day-accent,var(--orange));font-weight:700;background:rgba(0,0,0,.2);padding:8px 14px;border-radius:8px;white-space:nowrap}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:24px 16px 80px}
+  .hamburger{display:block}
+  .top-bar .logo .full-title{display:none}
+  .progress-wrap{max-width:200px}
+}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:899}
+.sidebar-overlay.show{display:block}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.module-body{animation:fadeIn .25s ease}
+.exam-info{background:linear-gradient(135deg,var(--bg-card) 0%,var(--accent-dim) 100%);border:1px solid var(--accent);border-radius:12px;padding:20px;margin-bottom:32px}
+.exam-info h3{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.exam-info h3 .new-tag{font-size:10px;background:var(--teal);color:#fff;padding:2px 8px;border-radius:4px}
+.exam-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px}
+.exam-stat{background:var(--bg-deep);border-radius:8px;padding:12px;text-align:center}
+.exam-stat-value{font-size:22px;font-weight:800;color:var(--text-bright);font-family:'JetBrains Mono',monospace}
+.exam-stat-label{font-size:10px;color:var(--text-dim);margin-top:4px}
+.duration-selector{margin-top:16px;padding:16px;background:var(--bg-deep);border-radius:8px;border:1px solid var(--border)}
+.duration-selector label{font-size:13px;font-weight:600;color:var(--text-bright);display:block;margin-bottom:8px}
+.duration-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.duration-input{display:flex;align-items:center;gap:8px}
+.duration-input input{width:70px;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-bright);font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;text-align:center}
+.duration-input input:focus{outline:none;border-color:var(--accent)}
+.duration-input span{font-size:13px;color:var(--text-dim)}
+.duration-presets{display:flex;gap:6px;flex-wrap:wrap}
+.preset-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-dim);font-size:12px;font-family:'Outfit',sans-serif;font-weight:500;cursor:pointer;transition:all .2s}
+.preset-btn:hover{border-color:var(--accent);color:var(--accent)}
+.preset-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.duration-summary{margin-top:12px;padding:10px;background:var(--bg-card);border-radius:6px;font-size:12px;color:var(--text);display:flex;gap:16px;flex-wrap:wrap}
+.duration-summary strong{color:var(--accent)}
+.unit-selector{display:flex;gap:4px}
+.unit-btn{padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-dim);font-size:11px;font-family:'Outfit',sans-serif;font-weight:500;cursor:pointer;transition:all .2s}
+.unit-btn:hover{border-color:var(--accent);color:var(--accent)}
+.unit-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+</style>
+</head>
+<body>
+<header class="top-bar">
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  <div class="logo"><span>CPIM</span> <span class="full-title">9.0 Study Tracker</span><span class="badge" id="daysBadge">10-DAY</span><span class="new-badge">v9.0</span></div>
+  <div class="progress-wrap">
+    <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
+    <span class="progress-text" id="progressText">0%</span>
+  </div>
+  <div class="top-actions">
+    <button class="btn-sm theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌓</button>
+    <button class="btn-sm" onclick="collapseAll()">Collapse</button>
+    <button class="btn-sm" onclick="expandAll()">Expand</button>
+    <button class="btn-sm save" onclick="exportProgress()">💾 Save</button>
+    <button class="btn-sm load" onclick="document.getElementById('importFile').click()">📂 Load</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importProgress(event)">
+    <button class="btn-sm danger" onclick="resetAll()">Reset</button>
+  </div>
+</header>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<nav class="sidebar" id="sidebar"></nav>
+<div class="toast" id="toast"><span class="toast-icon"></span><span class="toast-msg"></span></div>
+<main class="main" id="mainContent"></main>
+
+<script>
+// ========== RAW MODULE DATA ==========
+const allModules = [
+  {
+    id: 'mod1', number: 1, title: 'Align Supply Chain to Support Business Strategy', weight: 12, hours: 3,
+    topics: [
+      { group: 'A. Business Environment & Corporate Strategy', items: [
+        { id: 'm1a1', title: 'Support corporate mission, vision, values', desc: 'Align supply chain decisions with strategic goals', terms: ['mission statement', 'vision', 'corporate strategy'] },
+        { id: 'm1a2', title: 'Order winners & qualifiers', desc: 'Competitive priorities: availability, cost, quality, delivery, reliability, responsiveness, agility', priority: 'high', terms: ['order winner', 'order qualifier', 'competitive priority'] },
+        { id: 'm1a3', title: 'Competitive analysis tools', desc: 'Five-force model, SWOT, industry standards, benchmarking', priority: 'medium', terms: ['five forces', 'SWOT', 'benchmarking', 'competitive analysis'] },
+        { id: 'm1a4', title: 'Value chain analysis', desc: 'Identify activities that create customer value', terms: ['value chain', 'core competency'] },
+        { id: 'm1a5', title: 'Push-pull boundary alignment', desc: 'MTS, ATO, CTO, MTO, ETO, postponement, remanufacturing', priority: 'high', terms: ['make-to-stock', 'assemble-to-order', 'configure-to-order', 'make-to-order', 'engineer-to-order', 'decoupling point', 'postponement'] }
+      ]},
+      { group: 'B. Functional & Operational Strategies', items: [
+        { id: 'm1b1', title: 'Operations strategy alignment', desc: 'Core competencies, resources, costs, regulatory compliance', terms: ['operations strategy', 'core competency', 'intellectual property'] },
+        { id: 'm1b2', title: 'Technology choices', desc: 'ERP, automation, advanced planning, AI for efficiency', priority: 'new', terms: ['enterprise resources planning (ERP)', 'automation', 'artificial intelligence (AI)', 'advanced planning and scheduling (APS)'] },
+        { id: 'm1b3', title: 'Make-buy analysis', desc: 'Cost, capacity, quality, inventory, risk considerations', terms: ['make-or-buy decision', 'outsourcing', 'insourcing'] }
+      ]},
+      { group: 'C. Process Design', items: [
+        { id: 'm1c1', title: 'Product-process matrix', desc: 'Project, job shop, batch, mass customization, assembly line, repetitive, continuous flow', terms: ['product-process matrix', 'job shop', 'batch', 'repetitive manufacturing', 'continuous flow'] },
+        { id: 'm1c2', title: 'Service decision trade-offs', desc: 'Degree of contact, sales opportunity, production efficiency', terms: ['service operations', 'front room', 'back room'] },
+        { id: 'm1c3', title: 'Manufacturing layouts', desc: 'Fixed position, process/functional, cellular, product-focused, assembly line', terms: ['fixed-position layout', 'process layout', 'product layout', 'cellular manufacturing'] },
+        { id: 'm1c4', title: 'Product/service life cycle alignment', desc: 'Match process choices to life cycle stage', terms: ['product life cycle', 'introduction', 'growth', 'maturity', 'decline'] }
+      ]},
+      { group: 'D. KPIs & Performance', items: [
+        { id: 'm1d1', title: 'Financial metrics', desc: 'Cash-to-cash cycle, cash conversion cycle, cost per unit, cash flow', terms: ['cash-to-cash cycle time', 'cash flow', 'working capital'] },
+        { id: 'm1d2', title: 'Operational metrics', desc: 'Service levels, fill rate, schedule adherence, stockout %', terms: ['customer service level', 'fill rate', 'stockout', 'schedule adherence'] },
+        { id: 'm1d3', title: 'KPI tools', desc: 'Supply chain maturity, SCOR metrics, balanced scorecard', terms: ['balanced scorecard', 'SCOR', 'key performance indicator (KPI)'] }
+      ]},
+      { group: 'E. Risk Management', items: [
+        { id: 'm1e1', title: 'Supply chain mapping & monitoring', desc: 'Risk identification within regulatory requirements', terms: ['supply chain mapping', 'risk identification'] },
+        { id: 'm1e2', title: 'Risk impact assessment', desc: 'Supply disruption, financial, environmental, physical, political, cyber, IP, branding', terms: ['supply chain risk', 'risk assessment'] },
+        { id: 'm1e3', title: 'Business continuity planning', desc: 'Risk avoidance, acceptance, transfer, prevention, mitigation, recovery, pooling, resiliency', terms: ['business continuity planning (BCP)', 'risk mitigation', 'resiliency'] },
+        { id: 'm1e4', title: 'Risk management tools', desc: 'FMEA, ISO risk management standards', priority: 'medium', terms: ['failure mode and effects analysis (FMEA)', 'ISO 31000'] }
+      ]},
+      { group: 'F. Sustainability', items: [
+        { id: 'm1f1', title: 'Triple Bottom Line (TBL)', desc: 'Environmental, economic, social sustainability goals', terms: ['triple bottom line', 'sustainability'] },
+        { id: 'm1f2', title: 'Sustainability metrics & reporting', desc: 'Monitor and report sustainability performance', terms: ['carbon footprint', 'carbon handprint'] },
+        { id: 'm1f3', title: 'Sustainable procurement', desc: 'Support organizational sustainable procurement strategy', priority: 'new', terms: ['sustainable procurement', 'green purchasing', 'ISO 14001'] }
+      ]}
+    ]
+  },
+  {
+    id: 'mod2', number: 2, title: 'Conduct S&OP to Support Strategy', weight: 10, hours: 2.5,
+    topics: [
+      { group: 'A. S&OP Process', items: [
+        { id: 'm2a1', title: 'S&OP role in planning hierarchy', desc: 'Links business plan to master schedule', priority: 'high', terms: ['sales and operations planning (S&OP)', 'production plan', 'aggregate planning'] },
+        { id: 'm2a2', title: 'Roles & responsibilities', desc: 'Various departments and management levels in S&OP', terms: ['cross-functional team', 'executive S&OP'] },
+        { id: 'm2a3', title: 'Planning parameters', desc: 'Planning horizon, product families, aggregation level', terms: ['planning horizon', 'product family', 'aggregate plan'] },
+        { id: 'm2a4', title: 'S&OP steps', desc: 'Data gathering → demand planning → supply planning → pre-meeting → executive meeting', priority: 'high', terms: ['demand planning', 'supply planning', 'consensus'] }
+      ]},
+      { group: 'B. Aggregate Demand & Supply Plans', items: [
+        { id: 'm2b1', title: 'Product portfolio impact', desc: 'NPI, life cycle stages assessment', terms: ['new product introduction (NPI)', 'product portfolio', 'product life cycle'] },
+        { id: 'm2b2', title: 'Demand sources evaluation', desc: 'Market, customer base, forecast, orders, service parts, safety stock', terms: ['demand', 'forecast', 'customer order', 'interplant demand'] },
+        { id: 'm2b3', title: 'Supply capability evaluation', desc: 'External supply base, footprint, capacities, risks; Internal capacities, inventory status', terms: ['supply capability', 'capacity planning'] },
+        { id: 'm2b4', title: 'Strategic buffers', desc: 'Identify bottlenecks, CCRs, buffer types (lead time, inventory, capacity)', priority: 'medium', terms: ['buffer', 'bottleneck', 'capacity-constrained resource (CCR)', 'protective capacity'] }
+      ]},
+      { group: 'C. Reconciliation', items: [
+        { id: 'm2c1', title: 'Volume/mix trade-offs', desc: 'Evaluate different volume/mix combinations', terms: ['product mix', 'volume flexibility'] },
+        { id: 'm2c2', title: 'Financial implications', desc: 'Revenue, capacity usage, COGS, PPV, margin', terms: ['cost of goods sold (COGS)', 'purchase price variance (PPV)', 'margin'] },
+        { id: 'm2c3', title: 'Balancing supply & demand', desc: 'Adjust supply (OT, outsourcing, flexibility) or demand (lead time, shaping, substitutions)', priority: 'high', terms: ['demand shaping', 'load leveling', 'overtime', 'outsourcing'] }
+      ]}
+    ]
+  },
+  {
+    id: 'mod3', number: 3, title: 'Plan and Manage Demand', weight: 12, hours: 3,
+    topics: [
+      { group: 'A. Customer Management', items: [
+        { id: 'm3a1', title: 'Customer segmentation', desc: 'Segment by needs, business strategies, capabilities', terms: ['customer segmentation', 'customer relationship management (CRM)'] },
+        { id: 'm3a2', title: 'Service level KPIs', desc: 'Monitor KPIs aligned with customer service policies', terms: ['service level', 'customer service ratio', 'fill rate'] },
+        { id: 'm3a3', title: 'POS data & CPFR', desc: 'Point-of-sale data usage, collaborative planning', priority: 'medium', terms: ['point-of-sale (POS)', 'collaborative planning, forecasting, and replenishment (CPFR)'] }
+      ]},
+      { group: 'B. Demand Sources', items: [
+        { id: 'm3b1', title: 'Demand channels', desc: 'Retail, wholesale, distributor, e-commerce, omnichannel, B2B, B2C', terms: ['distribution channel', 'e-commerce', 'omnichannel', 'B2B', 'B2C'] },
+        { id: 'm3b2', title: 'Independent demand', desc: 'Forecast, orders, service/warranty, VMI, samples, distribution, interplant, rework', priority: 'high', terms: ['independent demand', 'service parts', 'vendor-managed inventory (VMI)'] },
+        { id: 'm3b3', title: 'Dependent demand', desc: 'Calculated from parent item via BOM', terms: ['dependent demand', 'bill of material (BOM)'] }
+      ]},
+      { group: 'C. Forecasting Methods', items: [
+        { id: 'm3c1', title: 'Time series decomposition', desc: 'Level, trend, seasonality, cyclical, random variation', priority: 'high', terms: ['time series', 'trend', 'seasonality', 'level', 'random variation'] },
+        { id: 'm3c2', title: 'Time series analysis', desc: 'Moving average, weighted MA, exponential smoothing', priority: 'formula', terms: ['moving average', 'weighted moving average', 'exponential smoothing', 'smoothing constant'] },
+        { id: 'm3c3', title: 'Qualitative techniques', desc: 'Historical analogy, panel consensus, Delphi, sales force polling, surveys', priority: 'medium', terms: ['qualitative forecasting', 'Delphi method', 'panel consensus', 'market research'] },
+        { id: 'm3c4', title: 'Associative techniques', desc: 'Linear regression, leading indicators', terms: ['regression analysis', 'leading indicator', 'correlation'] },
+        { id: 'm3c5', title: 'Advanced analytics', desc: 'Machine learning, AI for forecasting', priority: 'new', terms: ['machine learning (ML)', 'artificial intelligence (AI)', 'predictive analytics'] }
+      ]},
+      { group: 'D. Forecast Monitoring', items: [
+        { id: 'm3d1', title: 'Forecast error metrics', desc: 'Bias, CFE, MAD, MAPE, MSE, tracking signal', priority: 'formula', terms: ['mean absolute deviation (MAD)', 'mean absolute percentage error (MAPE)', 'tracking signal', 'bias', 'cumulative forecast error (CFE)'] },
+        { id: 'm3d2', title: 'Bullwhip effect', desc: 'Demand variability amplification mitigation', terms: ['bullwhip effect', 'demand amplification'] }
+      ]}
+    ]
+  },
+  {
+    id: 'mod4', number: 4, title: 'Plan and Manage Internal Supply Sources', weight: 12, hours: 3.5,
+    topics: [
+      { group: 'A. Master Scheduling', items: [
+        { id: 'm4a1', title: 'Master scheduling role', desc: 'Role in planning and control hierarchy', priority: 'high', terms: ['master production schedule (MPS)', 'master schedule', 'planning hierarchy'] },
+        { id: 'm4a2', title: 'Business environment impact', desc: 'Different environments affect master scheduling process', terms: ['manufacturing environment', 'make-to-stock', 'assemble-to-order'] },
+        { id: 'm4a3', title: 'MPS level in BOM', desc: 'Finished goods, subassemblies, raw materials based on strategy', priority: 'high', terms: ['planning bill', 'modular bill of material', 'super bill'] },
+        { id: 'm4a4', title: 'ATP & CTP', desc: 'Discrete/cumulative ATP, capable-to-promise for order promising', priority: 'formula', terms: ['available-to-promise (ATP)', 'capable-to-promise (CTP)', 'order promising'] },
+        { id: 'm4a5', title: 'Time fences', desc: 'Demand time fence, planning time fence, change control', priority: 'high', terms: ['time fence', 'demand time fence', 'planning time fence', 'frozen zone'] }
+      ]},
+      { group: 'B. Rough-Cut Capacity Planning', items: [
+        { id: 'm4b1', title: 'Bill of resources', desc: 'Capacity requirements and impact on supply', terms: ['bill of resources', 'rough-cut capacity planning (RCCP)'] },
+        { id: 'm4b2', title: 'Efficiency & utilization', desc: 'Monitor work center efficiency and utilization to goals', priority: 'formula', terms: ['efficiency', 'utilization', 'productivity'] }
+      ]},
+      { group: 'C. Material Requirements Planning', items: [
+        { id: 'm4c1', title: 'MRP inputs & data', desc: 'Item master, MRP parameters, scrap/yield, lot size, historical demand', priority: 'high', terms: ['material requirements planning (MRP)', 'item master', 'lot size', 'lead time'] },
+        { id: 'm4c2', title: 'BOM for MRP', desc: 'Part interdependencies, lead times, engineering changes', terms: ['bill of material (BOM)', 'low-level code', 'parent-component'] },
+        { id: 'm4c3', title: 'MRP record', desc: 'Gross req, scheduled receipts, PAB, net req, planned receipts, planned releases', priority: 'formula', terms: ['gross requirements', 'scheduled receipts', 'projected available balance (PAB)', 'net requirements', 'planned order release'] },
+        { id: 'm4c4', title: 'Action messages', desc: 'Release, reschedule in/out, cancel - system feedback', terms: ['action message', 'exception message', 'reschedule'] }
+      ]},
+      { group: 'D. Product Costing', items: [
+        { id: 'm4d1', title: 'Cost types', desc: 'Direct, indirect, overhead, fixed, variable, landed, TCO', priority: 'high', terms: ['direct cost', 'indirect cost', 'overhead', 'fixed cost', 'variable cost', 'total cost of ownership (TCO)'] },
+        { id: 'm4d2', title: 'Costing methods', desc: 'Absorption, variable, job, activity-based costing', terms: ['absorption costing', 'variable costing', 'activity-based costing (ABC)', 'standard cost'] }
+      ]}
+    ]
+  },
+  {
+    id: 'mod5', number: 5, title: 'Plan and Manage External Supply Sources', weight: 11, hours: 2.5,
+    topics: [
+      { group: 'A. Supplier Selection', items: [
+        { id: 'm5a1', title: 'Sourcing alternatives', desc: 'Sole, single, multi-source; nearshore, offshore, onshore, reshore, friendshore', priority: 'high', terms: ['sole source', 'single source', 'multiple sourcing', 'nearshoring', 'offshoring', 'reshoring', 'friendshoring'] },
+        { id: 'm5a2', title: 'Supplier relationships', desc: 'Partnership, strategic alliance, joint venture, contract manufacturing, subcontracting', priority: 'high', terms: ['supplier partnership', 'strategic alliance', 'joint venture', 'contract manufacturing'] }
+      ]},
+      { group: 'B. Supplier Relationship Management', items: [
+        { id: 'm5b1', title: 'Supplier performance', desc: 'Balanced scorecard, price/time/cost/quality/ESG metrics', priority: 'medium', terms: ['supplier scorecard', 'key performance indicator', 'ESG metrics'] },
+        { id: 'm5b2', title: 'Contract terms', desc: 'Inventory levels, delivery expectations, information sharing, liability', terms: ['contract terms', 'service level agreement'] }
+      ]},
+      { group: 'C. Procurement Methods', items: [
+        { id: 'm5c1', title: 'Procurement methods', desc: 'Contracts, blanket orders, POs, consignment, VMI, outsourcing, e-commerce', priority: 'high', terms: ['purchase order', 'blanket order', 'consignment', 'vendor-managed inventory (VMI)', 'e-procurement'] },
+        { id: 'm5c2', title: 'Material release methods', desc: 'Pull system, supplier scheduling, EDI, continuous replenishment', terms: ['pull system', 'electronic data interchange (EDI)', 'continuous replenishment'] },
+        { id: 'm5c3', title: 'Logistics methods', desc: 'Transportation modes, 3PL/4PL, cross-docking, FTL, LTL, intermodal', terms: ['third-party logistics (3PL)', 'fourth-party logistics (4PL)', 'cross-docking', 'full truckload (FTL)', 'less-than-truckload (LTL)'] }
+      ]},
+      { group: 'D. Supplier Changes & Disruptions', items: [
+        { id: 'm5d1', title: 'External supply analytics', desc: 'What-if, simulation, ML, AI for trade-off evaluation', priority: 'new', terms: ['what-if analysis', 'simulation', 'predictive analytics'] },
+        { id: 'm5d2', title: 'Supplier BCP', desc: 'Implement supplier business continuity plan when needed', terms: ['business continuity', 'supplier risk management'] }
+      ]}
+    ]
+  },
+  {
+    id: 'mod6', number: 6, title: 'Plan and Manage Inventory', weight: 14, hours: 4,
+    topics: [
+      { group: 'A. Inventory Planning', items: [
+        { id: 'm6a1', title: 'Inventory types', desc: 'Raw materials, WIP, semifinished, finished goods, floor stock, MRO', priority: 'high', terms: ['raw materials', 'work in process (WIP)', 'finished goods', 'MRO supplies'] },
+        { id: 'm6a2', title: 'Inventory classifications', desc: 'Cycle, lot-size, seasonal, anticipation, hedge, decoupling, pipeline, service, excess, obsolete', priority: 'high', terms: ['cycle stock', 'safety stock', 'anticipation inventory', 'hedge inventory', 'decoupling inventory', 'pipeline inventory'] },
+        { id: 'm6a3', title: 'Item segmentation', desc: 'ABC, perishability, hazmat, special handling, supply/customer risk', terms: ['ABC classification', 'Pareto analysis', 'hazardous materials'] }
+      ]},
+      { group: 'B. Inventory Management', items: [
+        { id: 'm6b1', title: 'Push vs pull replenishment', desc: 'MRP, DRP vs ROP, periodic review, visual, min-max, two-bin, kanban', priority: 'high', terms: ['push system', 'pull system', 'material requirements planning', 'kanban', 'reorder point'] },
+        { id: 'm6b2', title: 'Fixed lot sizing', desc: 'EOQ, period order quantity', priority: 'formula', terms: ['economic order quantity (EOQ)', 'period order quantity (POQ)'] },
+        { id: 'm6b3', title: 'Safety stock calculation', desc: 'Based on costs and service level objectives', priority: 'formula', terms: ['safety stock', 'service level', 'safety factor'] }
+      ]},
+      { group: 'C. Inventory Costs', items: [
+        { id: 'm6c1', title: 'Cost elements', desc: 'Total carrying, ordering, stockout costs and trade-offs', priority: 'high', terms: ['carrying cost', 'ordering cost', 'stockout cost', 'holding cost'] },
+        { id: 'm6c2', title: 'Inventory valuation', desc: 'FIFO, LIFO, average cost, transfer pricing', priority: 'formula', terms: ['first in first out (FIFO)', 'last in first out (LIFO)', 'average cost', 'transfer pricing'] },
+        { id: 'm6c3', title: 'Inventory metrics', desc: 'Inventory turns, days of supply', priority: 'formula', terms: ['inventory turnover', 'days of supply', 'weeks of supply'] }
+      ]},
+      { group: 'D. Inventory Control', items: [
+        { id: 'm6d1', title: 'Inventory accuracy', desc: 'Audit programs, physical inventory, cycle counting, spot checks', priority: 'high', terms: ['cycle counting', 'physical inventory', 'inventory accuracy'] },
+        { id: 'm6d2', title: 'Traceability & tracking', desc: 'ASN, country of origin, chain of custody, barcoding, RFID, IoT', priority: 'medium', terms: ['advance ship notice (ASN)', 'RFID', 'barcode', 'Internet of Things (IoT)', 'traceability'] }
+      ]},
+      { group: 'E. Returns & Disposition', items: [
+        { id: 'm6e1', title: 'Reverse logistics', desc: 'Waste hierarchy, acceptance guidelines, regulations, recalls', terms: ['reverse logistics', 'returns management', 'product recall'] },
+        { id: 'm6e2', title: 'Waste hierarchy & circular economy', desc: 'Prevent, reduce, reuse, remanufacture, recycle, recover, dispose', priority: 'high', terms: ['waste hierarchy', 'circular economy', 'remanufacturing', 'life cycle assessment (LCA)'] }
+      ]}
+    ]
+  },
+  {
+    id: 'mod7', number: 7, title: 'Plan, Manage, Execute Detailed Schedules', weight: 12, hours: 3.5,
+    topics: [
+      { group: 'A. Production Rate & Sequencing', items: [
+        { id: 'm7a1', title: 'Lead time elements', desc: 'Queue, setup, run, wait, move times', priority: 'high', terms: ['lead time', 'queue time', 'setup time', 'run time', 'wait time', 'move time'] },
+        { id: 'm7a2', title: 'Throughput measures', desc: 'Efficiency, utilization, productivity, takt time, cycle time, I/O control', priority: 'formula', terms: ['throughput', 'efficiency', 'utilization', 'takt time', 'cycle time', 'input/output control'] },
+        { id: 'm7a3', title: 'Push environment tools', desc: 'Time standard, priority control, dispatch list, setup matrix, lot splitting, overlapping, sequencing rules', priority: 'high', terms: ['dispatching', 'dispatch list', 'lot splitting', 'overlapped schedule', 'sequencing rules'] },
+        { id: 'm7a4', title: 'Pull environment tools', desc: 'Mixed-model scheduling, rate-based, synchronization, line balancing', terms: ['mixed-model scheduling', 'rate-based scheduling', 'line balancing', 'heijunka'] },
+        { id: 'm7a5', title: 'Bottleneck management', desc: 'Lean and TOC techniques: improve flow, couple/decouple, elevate', priority: 'high', terms: ['theory of constraints (TOC)', 'bottleneck', 'constraint', 'drum-buffer-rope'] }
+      ]},
+      { group: 'B. Capacity Planning', items: [
+        { id: 'm7b1', title: 'Capacity types', desc: 'Theoretical, demonstrated, available, rated capacity', priority: 'high', terms: ['theoretical capacity', 'demonstrated capacity', 'rated capacity', 'available capacity'] },
+        { id: 'm7b2', title: 'Scheduling techniques', desc: 'Infinite/finite capacity planning, finite scheduling, load balancing', terms: ['infinite loading', 'finite loading', 'finite scheduling', 'load leveling'] },
+        { id: 'm7b3', title: 'Simulation & modeling', desc: 'Scenario planning, AI, ML for viability assessment', priority: 'new', terms: ['simulation', 'scenario planning', 'artificial intelligence'] }
+      ]},
+      { group: 'C. Execution & Control', items: [
+        { id: 'm7c1', title: 'Queue management', desc: 'I/O analysis, capacity, load, open orders, prioritization rules', priority: 'high', terms: ['queue management', 'input/output control', 'priority rules', 'critical ratio'] },
+        { id: 'm7c2', title: 'Exception management', desc: 'Manage exceptions and variances to maintain supply plan', terms: ['exception management', 'variance', 'expediting'] }
+      ]}
+    ]
+  },
+  {
+    id: 'mod8', number: 8, title: 'Plan and Manage Distribution', weight: 8, hours: 2,
+    topics: [
+      { group: 'A. Distribution Planning', items: [
+        { id: 'm8a1', title: 'Network configuration', desc: 'Total costs, inventory investment, customer service, lead time', terms: ['distribution network', 'network design'] },
+        { id: 'm8a2', title: 'DRP logic', desc: 'Time-phased planning logic for distribution requirements', priority: 'high', terms: ['distribution requirements planning (DRP)', 'time-phased planning'] },
+        { id: 'm8a3', title: 'Distribution KPIs', desc: 'Service level, on-time, lead time, turns, safety stock, stockouts', terms: ['on-time delivery', 'fill rate', 'customer satisfaction'] }
+      ]},
+      { group: 'B. Customer Order Management', items: [
+        { id: 'm8b1', title: 'Inventory availability', desc: 'Evaluate availability and lead time for sales/marketing goals', terms: ['inventory availability', 'lead time'] },
+        { id: 'm8b2', title: 'Backlog management', desc: 'Evaluate open customer orders for on-time delivery', terms: ['backlog', 'on-time delivery'] }
+      ]}
+    ]
+  },
+  {
+    id: 'mod9', number: 9, title: 'Manage Quality, Continuous Improvement & Technology', weight: 9, hours: 2.5,
+    topics: [
+      { group: 'A. Quality Management', items: [
+        { id: 'm9a1', title: 'Quality tools', desc: 'Basic 7 (B7) and New 7 (N7) tools for root cause analysis', priority: 'high', terms: ['seven tools of quality', 'Pareto chart', 'cause-and-effect diagram', 'histogram', 'control chart'] }
+      ]},
+      { group: 'B. Continuous Improvement', items: [
+        { id: 'm9b1', title: 'Lean concepts', desc: 'Kaizen, waste reduction, throughput improvement, flexibility, one-piece flow', priority: 'high', terms: ['kaizen', 'muda', 'waste reduction', 'one-piece flow'] },
+        { id: 'm9b2', title: 'Lean tools', desc: 'Pull systems, kanban, takt time, standardized work, TPM, SMED, VSM, A3, gemba walk', priority: 'high', terms: ['kanban', 'takt time', 'total productive maintenance (TPM)', 'single-minute exchange of die (SMED)', 'value stream mapping', 'gemba'] },
+        { id: 'm9b3', title: 'Problem-solving processes', desc: 'PDCA, DMAIC structured approaches', priority: 'high', terms: ['plan-do-check-act (PDCA)', 'DMAIC', 'Six Sigma'] },
+        { id: 'm9b4', title: 'Statistical process control', desc: 'Common, assignable, special cause variation; control charts', terms: ['statistical process control (SPC)', 'common cause variation', 'special cause variation', 'control chart'] }
+      ]},
+      { group: 'C. Technology Management', items: [
+        { id: 'm9c1', title: 'Master data integrity', desc: 'Manage integrity of master data', terms: ['master data management', 'data integrity'] },
+        { id: 'm9c2', title: 'Emerging technologies', desc: 'AI, IoT, 3D printing, RPA for competitive advantage', priority: 'new', terms: ['artificial intelligence (AI)', 'Internet of Things (IoT)', '3D printing', 'robotic process automation (RPA)', 'additive manufacturing'] }
+      ]}
+    ]
+  }
+];
+
+// Practice modules (always at end)
+const practiceModules = [
+  {
+    id: 'practice1', number: '★', title: 'Practice Exam', weight: 'DRILL', hours: 4,
+    topics: [
+      { group: 'Exam Execution', items: [
+        { id: 'p1a1', title: 'Set up exam environment', desc: 'Quiet space, 3.5 hours, no interruptions', terms: [] },
+        { id: 'p1a2', title: 'Take full 150-question practice exam', desc: 'Use Learning System or Pocket Prep', terms: [] },
+        { id: 'p1a3', title: 'Complete all questions', desc: 'No penalty for guessing — answer everything', terms: [] }
+      ]},
+      { group: 'Initial Review', items: [
+        { id: 'p1b1', title: 'Record your score', desc: 'Note overall % and by module if available', terms: [] },
+        { id: 'p1b2', title: 'Identify weak modules', desc: 'Which modules had most wrong answers?', terms: [] }
+      ]}
+    ]
+  },
+  {
+    id: 'gap', number: '⚡', title: 'Gap Analysis & Formula Drilling', weight: 'CRITICAL', hours: 4,
+    topics: [
+      { group: 'Error Categorization', items: [
+        { id: 'g1a1', title: 'Review every wrong answer', desc: 'Read explanation, understand why correct answer is right', terms: [] },
+        { id: 'g1a2', title: 'Categorize errors', desc: 'Terminology miss, concept gap, calculation error, misread question', terms: [] }
+      ]},
+      { group: 'Formula Drilling', items: [
+        { id: 'g1b1', title: 'EOQ calculation practice', desc: '√(2DS/H) — do 5 problems', terms: ['economic order quantity'] },
+        { id: 'g1b2', title: 'Safety stock calculation', desc: 'Z × σ × √LT — do 5 problems', terms: ['safety stock', 'safety factor'] },
+        { id: 'g1b3', title: 'MRP record completion', desc: 'PAB, net req, planned orders — do 3 problems', terms: ['MRP', 'projected available balance'] },
+        { id: 'g1b4', title: 'ATP calculation', desc: 'Discrete method — do 3 problems', terms: ['available-to-promise'] },
+        { id: 'g1b5', title: 'Critical Ratio & Inventory turns', desc: 'Time remaining / work remaining; COGS/Avg Inv', terms: ['critical ratio', 'inventory turnover'] }
+      ]}
+    ]
+  },
+  {
+    id: 'final', number: '✓', title: 'Final Review & Rest', weight: 'REST', hours: 2,
+    topics: [
+      { group: 'Light Review', items: [
+        { id: 'f1a1', title: 'Light review of summary notes', desc: 'Your 1-page gap summary + formula sheet', terms: [] },
+        { id: 'f1a2', title: 'Focus on weak modules', desc: 'Quick review of top 3 weak areas', terms: [] },
+        { id: 'f1a3', title: 'Stop studying by 2pm', desc: 'No new material after this', terms: [] }
+      ]},
+      { group: 'Exam Day Prep', items: [
+        { id: 'f1b1', title: 'Prepare exam logistics', desc: 'ID, confirmation, directions', terms: [] },
+        { id: 'f1b2', title: 'Sleep 7-8 hours', desc: 'Most important thing you can do', terms: [] },
+        { id: 'f1b3', title: 'Answer every question', desc: 'No penalty for guessing — never leave blank', terms: [] }
+      ]}
+    ]
+  }
+];
+
+// ========== CONFIGURATION ==========
+const TOTAL_CONTENT_HOURS = allModules.reduce((sum, m) => sum + m.hours, 0); // ~26.5 hours for content
+const PRACTICE_HOURS = practiceModules.reduce((sum, m) => sum + m.hours, 0); // 10 hours for practice/review
+const TOTAL_STUDY_HOURS = TOTAL_CONTENT_HOURS + PRACTICE_HOURS;
+const STORAGE_KEY = 'cpim9_flex_tracker_v2';
+
+let state = {};
+let openNotes = new Set();
+let studyPeriods = 10; // default
+let timeUnit = 'day'; // 'day', 'week', 'month'
+
+const TIME_UNIT_LABELS = {
+  day: { singular: 'Day', plural: 'Days', abbrev: 'DAY', perLabel: 'day' },
+  week: { singular: 'Week', plural: 'Weeks', abbrev: 'WK', perLabel: 'week' },
+  month: { singular: 'Month', plural: 'Months', abbrev: 'MO', perLabel: 'month' }
+};
+
+// ========== DYNAMIC STUDY PLAN GENERATION ==========
+function generateStudyPlan(numPeriods) {
+  const unit = TIME_UNIT_LABELS[timeUnit];
+  
+  // Reserve last periods for practice/gap/final if possible
+  const practicePeriods = Math.min(3, Math.floor(numPeriods * 0.3));
+  const contentPeriods = numPeriods - practicePeriods;
+  
+  if (contentPeriods < 1) {
+    return generateCompressedPlan(numPeriods);
+  }
+  
+  // Calculate hours per content period
+  const hoursPerContentPeriod = TOTAL_CONTENT_HOURS / contentPeriods;
+  
+  // Distribute modules across content periods
+  const plan = [];
+  let currentPeriod = { modules: [], totalHours: 0, focus: [] };
+  let periodNum = 1;
+  
+  for (const mod of allModules) {
+    if (currentPeriod.totalHours + mod.hours > hoursPerContentPeriod * 1.3 && currentPeriod.modules.length > 0) {
+      plan.push(buildPeriodObject(periodNum, currentPeriod, hoursPerContentPeriod));
+      periodNum++;
+      currentPeriod = { modules: [], totalHours: 0, focus: [] };
+    }
+    currentPeriod.modules.push(mod);
+    currentPeriod.totalHours += mod.hours;
+    currentPeriod.focus.push(`M${mod.number}`);
+  }
+  
+  if (currentPeriod.modules.length > 0) {
+    plan.push(buildPeriodObject(periodNum, currentPeriod, hoursPerContentPeriod));
+    periodNum++;
+  }
+  
+  while (plan.length < contentPeriods) {
+    plan.push({
+      id: `period${periodNum}`,
+      period: periodNum,
+      title: 'Review & Weak Area Focus',
+      hours: Math.round(hoursPerContentPeriod * 10) / 10,
+      focus: 'Review challenging topics from previous ' + unit.plural.toLowerCase(),
+      modules: []
+    });
+    periodNum++;
+  }
+  
+  const practiceHoursPerPeriod = PRACTICE_HOURS / practicePeriods;
+  
+  if (practicePeriods >= 1) {
+    plan.push({
+      id: `period${periodNum}`,
+      period: periodNum,
+      title: 'Practice Exam',
+      hours: Math.round(practiceHoursPerPeriod * 10) / 10,
+      focus: 'Full 150-question simulation (timed)',
+      modules: [practiceModules[0]]
+    });
+    periodNum++;
+  }
+  
+  if (practicePeriods >= 2) {
+    plan.push({
+      id: `period${periodNum}`,
+      period: periodNum,
+      title: 'Gap Analysis & Formula Drilling',
+      hours: Math.round(practiceHoursPerPeriod * 10) / 10,
+      focus: 'Review every wrong answer — categorize errors — drill formulas',
+      modules: [practiceModules[1]]
+    });
+    periodNum++;
+  }
+  
+  if (practicePeriods >= 3) {
+    plan.push({
+      id: `period${periodNum}`,
+      period: periodNum,
+      title: 'Final Review & Rest',
+      hours: 2,
+      focus: 'Light review — no cramming — rest well',
+      modules: [practiceModules[2]]
+    });
+  }
+  
+  return plan;
+}
+
+function generateCompressedPlan(numPeriods) {
+  const unit = TIME_UNIT_LABELS[timeUnit];
+  const hoursPerPeriod = TOTAL_STUDY_HOURS / numPeriods;
+  const plan = [];
+  
+  if (numPeriods === 1) {
+    plan.push({
+      id: 'period1',
+      period: 1,
+      title: 'Complete CPIM 9.0 Review',
+      hours: Math.round(hoursPerPeriod * 10) / 10,
+      focus: 'All 9 modules + practice questions',
+      modules: [...allModules, ...practiceModules]
+    });
+  } else {
+    const modulesPerPeriod = Math.ceil(allModules.length / (numPeriods - 1));
+    let modIdx = 0;
+    
+    for (let p = 1; p < numPeriods; p++) {
+      const periodMods = allModules.slice(modIdx, modIdx + modulesPerPeriod);
+      modIdx += modulesPerPeriod;
+      
+      plan.push({
+        id: `period${p}`,
+        period: p,
+        title: `Modules ${periodMods.map(m => m.number).join(', ')}`,
+        hours: Math.round(periodMods.reduce((s, m) => s + m.hours, 0) * 10) / 10,
+        focus: periodMods.map(m => m.title.split(' ').slice(0, 3).join(' ')).join(' + '),
+        modules: periodMods
+      });
+    }
+    
+    plan.push({
+      id: `period${numPeriods}`,
+      period: numPeriods,
+      title: 'Practice & Final Review',
+      hours: PRACTICE_HOURS,
+      focus: 'Practice exam + gap analysis + rest',
+      modules: practiceModules
+    });
+  }
+  
+  return plan;
+}
+
+function buildPeriodObject(periodNum, periodData, targetHours) {
+  const modNums = periodData.modules.map(m => m.number);
+  let title = '';
+  
+  if (modNums.length === 1) {
+    title = `Module ${modNums[0]}: ${periodData.modules[0].title.split(' ').slice(0, 4).join(' ')}`;
+  } else if (modNums.length === 2) {
+    title = `Modules ${modNums[0]}-${modNums[1]}`;
+  } else {
+    title = `Modules ${modNums[0]}-${modNums[modNums.length - 1]}`;
+  }
+  
+  return {
+    id: `period${periodNum}`,
+    period: periodNum,
+    title: title,
+    hours: Math.round(periodData.totalHours * 10) / 10,
+    focus: periodData.modules.map(m => m.title.split(' ')[0]).join(' + '),
+    modules: periodData.modules
+  };
+}
+
+// ========== STATE MANAGEMENT ==========
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) {
+      const data = JSON.parse(s);
+      state = data.state || {};
+      studyPeriods = data.studyPeriods || data.studyDays || 10;
+      timeUnit = data.timeUnit || 'day';
+    }
+  } catch(e) { state = {}; studyPeriods = 10; timeUnit = 'day'; }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ state, studyPeriods, timeUnit }));
+  } catch(e) {}
+}
+
+function isChecked(id) { return !!state[id]; }
+function toggleCheck(id) { state[id] = !state[id]; saveState(); updateUI(); }
+function hasNote(id) { return !!state['note_'+id]; }
+function getNote(id) { return state['note_'+id] || ''; }
+
+function saveNote(id) {
+  const ta = document.getElementById('note_ta_'+id);
+  if (!ta) return;
+  const val = ta.value.trim();
+  if (val) { state['note_'+id] = val; } else { delete state['note_'+id]; }
+  saveState();
+  const saved = document.getElementById('note_saved_'+id);
+  if (saved) { saved.classList.add('show'); setTimeout(() => saved.classList.remove('show'), 1500); }
+  updateUI();
+}
+
+function toggleNote(id) {
+  const area = document.getElementById('note_area_'+id);
+  const btn = document.getElementById('note_btn_'+id);
+  if (!area) return;
+  const opening = !area.classList.contains('open');
+  if (opening) { openNotes.add(id); } else { openNotes.delete(id); }
+  area.classList.toggle('open');
+  if (btn) btn.classList.toggle('open', opening);
+  if (opening) { const ta = document.getElementById('note_ta_'+id); if(ta) ta.focus(); }
+}
+
+// ========== DURATION CONTROLS ==========
+function setDuration(periods, newUnit = null) {
+  if (newUnit) timeUnit = newUnit;
+  studyPeriods = Math.max(1, Math.min(52, parseInt(periods) || 10));
+  
+  const unit = TIME_UNIT_LABELS[timeUnit];
+  document.getElementById('periodsInput').value = studyPeriods;
+  document.getElementById('daysBadge').textContent = `${studyPeriods}-${unit.abbrev}`;
+  
+  // Update unit buttons
+  document.querySelectorAll('.unit-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.unit === timeUnit);
+  });
+  
+  // Update preset buttons
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.periods) === studyPeriods);
+  });
+  
+  // Update summary
+  const hoursPerPeriod = (TOTAL_STUDY_HOURS / studyPeriods).toFixed(1);
+  document.getElementById('durationSummary').innerHTML = `
+    <span><strong>${TOTAL_STUDY_HOURS.toFixed(1)}</strong> total hours</span>
+    <span><strong>${hoursPerPeriod}</strong> hrs/${unit.perLabel}</span>
+    <span><strong>9</strong> modules + practice</span>
+  `;
+  
+  saveState();
+  updateUI();
+}
+
+function setTimeUnit(newUnit) {
+  setDuration(studyPeriods, newUnit);
+}
+
+// ========== RENDERING ==========
+function renderSidebar() {
+  const studyPlan = generateStudyPlan(studyPeriods);
+  const unit = TIME_UNIT_LABELS[timeUnit];
+  const sidebar = document.getElementById('sidebar');
+  let html = `<div class="nav-section">${studyPeriods}-${unit.singular} Study Plan</div>`;
+  
+  studyPlan.forEach(p => {
+    const allItems = [];
+    p.modules.forEach(m => m.topics.forEach(t => t.items.forEach(i => allItems.push(i.id))));
+    const done = allItems.filter(id => isChecked(id)).length;
+    const total = allItems.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    const completed = done === total && total > 0;
+    const noteCount = allItems.filter(id => hasNote(id)).length;
+    
+    html += `<div class="nav-item ${completed ? 'completed' : ''}" onclick="scrollToPeriod('${p.id}')">
+      <span class="nav-check">${completed ? '✓' : ''}</span>
+      <span>${unit.singular} ${p.period}${noteCount ? `<span class="note-count">📝${noteCount}</span>` : ''}</span>
+      <span class="day-label">${p.hours}h</span>
+      <span class="nav-pct">${pct}%</span>
+    </div>`;
+  });
+  sidebar.innerHTML = html;
+}
+
+function renderMain() {
+  const studyPlan = generateStudyPlan(studyPeriods);
+  const unit = TIME_UNIT_LABELS[timeUnit];
+  const main = document.getElementById('mainContent');
+  
+  let html = `<div class="exam-info">
+    <h3>📋 CPIM 9.0 Exam Overview <span class="new-tag">Effective June 1, 2026</span></h3>
+    <div class="exam-info-grid">
+      <div class="exam-stat"><div class="exam-stat-value">150</div><div class="exam-stat-label">Questions</div></div>
+      <div class="exam-stat"><div class="exam-stat-value">3.5h</div><div class="exam-stat-label">Time Limit</div></div>
+      <div class="exam-stat"><div class="exam-stat-value">300</div><div class="exam-stat-label">Pass Score</div></div>
+      <div class="exam-stat"><div class="exam-stat-value">9</div><div class="exam-stat-label">Modules</div></div>
+    </div>
+    <div class="duration-selector">
+      <label>⏱️ Study Duration</label>
+      <div class="duration-row">
+        <div class="duration-input">
+          <input type="number" id="periodsInput" value="${studyPeriods}" min="1" max="52" onchange="setDuration(this.value)">
+          <div class="unit-selector">
+            <button class="unit-btn ${timeUnit==='day'?'active':''}" data-unit="day" onclick="setTimeUnit('day')">Days</button>
+            <button class="unit-btn ${timeUnit==='week'?'active':''}" data-unit="week" onclick="setTimeUnit('week')">Weeks</button>
+            <button class="unit-btn ${timeUnit==='month'?'active':''}" data-unit="month" onclick="setTimeUnit('month')">Months</button>
+          </div>
+        </div>
+        <div class="duration-presets">
+          <button class="preset-btn ${studyPeriods===5?'active':''}" data-periods="5" onclick="setDuration(5)">5</button>
+          <button class="preset-btn ${studyPeriods===7?'active':''}" data-periods="7" onclick="setDuration(7)">7</button>
+          <button class="preset-btn ${studyPeriods===10?'active':''}" data-periods="10" onclick="setDuration(10)">10</button>
+          <button class="preset-btn ${studyPeriods===14?'active':''}" data-periods="14" onclick="setDuration(14)">14</button>
+          <button class="preset-btn ${studyPeriods===21?'active':''}" data-periods="21" onclick="setDuration(21)">21</button>
+        </div>
+      </div>
+      <div class="duration-summary" id="durationSummary">
+        <span><strong>${TOTAL_STUDY_HOURS.toFixed(1)}</strong> total hours</span>
+        <span><strong>${(TOTAL_STUDY_HOURS / studyPeriods).toFixed(1)}</strong> hrs/${unit.perLabel}</span>
+        <span><strong>9</strong> modules + practice</span>
+      </div>
+    </div>
+  </div>`;
+  
+  studyPlan.forEach(p => {
+    html += `<div id="${p.id}">
+      <div class="day-header" data-day="${((p.period - 1) % 14) + 1}">
+        <div class="day-number">${unit.singular.charAt(0)}${p.period}</div>
+        <div class="day-info"><h2>${p.title}</h2><p>${p.focus}</p></div>
+        <div class="day-hours">${p.hours} hrs</div>
+      </div>`;
+    
+    p.modules.forEach(mod => {
+      const allItems = [];
+      mod.topics.forEach(t => t.items.forEach(i => allItems.push(i.id)));
+      const done = allItems.filter(id => isChecked(id)).length;
+      const total = allItems.length;
+      const pct = total ? Math.round(done/total*100) : 0;
+      const completed = done === total && total > 0;
+      const isOpen = state['open_'+mod.id] !== false;
+      const modType = typeof mod.number === 'number' ? mod.number : mod.id;
+      
+      html += `<div class="module ${completed ? 'completed' : ''} ${isOpen ? 'open' : ''}" id="module_${mod.id}" data-mod="${modType}">
+        <div class="module-header" onclick="toggleModule('${mod.id}')">
+          <div class="module-number">${mod.number}</div>
+          <div class="module-title">${mod.title}</div>
+          <span class="module-weight">${mod.weight}${typeof mod.weight === 'number' ? '%' : ''}</span>
+          <div class="module-meta">
+            <span class="module-pct">${pct}%</span>
+            <div class="module-mini-bar"><div class="module-mini-bar-fill" style="width:${pct}%"></div></div>
+          </div>
+          <span class="module-chevron">▼</span>
+        </div>
+        <div class="module-body">`;
+      
+      mod.topics.forEach(topic => {
+        html += `<div class="topic-group"><div class="topic-group-title">${topic.group}</div>`;
+        topic.items.forEach(item => {
+          const checked = isChecked(item.id);
+          const noteText = getNote(item.id);
+          const noteExists = !!noteText;
+          const noteOpen = openNotes.has(item.id);
+          const escapedNote = (noteText || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          
+          let tag = '';
+          if (item.priority === 'high') tag = '<span class="tag high">HIGH</span>';
+          else if (item.priority === 'medium') tag = '<span class="tag medium">MEDIUM</span>';
+          else if (item.priority === 'formula') tag = '<span class="tag formula">FORMULA</span>';
+          else if (item.priority === 'new') tag = '<span class="tag new">NEW</span>';
+          
+          let termsHtml = '';
+          if (item.terms && item.terms.length > 0) {
+            termsHtml = `<div class="key-terms"><div class="key-terms-label">Key Terms</div><div class="key-terms-list">${item.terms.map(t => `<span class="term">${t}</span>`).join('')}</div></div>`;
+          }
+          
+          html += `<div class="step">
+            <div class="step-check ${checked ? 'checked' : ''} ${noteExists ? 'has-note' : ''}" onclick="toggleCheck('${item.id}')">✓</div>
+            <div class="step-content ${checked ? 'checked-text' : ''}">
+              <div class="step-header">
+                <div class="step-title">${item.title}${tag}</div>
+                <button class="note-btn ${noteExists ? 'has-note' : ''} ${noteOpen ? 'open' : ''}" id="note_btn_${item.id}" onclick="toggleNote('${item.id}')">${noteExists ? '📝 Note' : '📝'}</button>
+              </div>
+              <div class="note-area ${noteOpen ? 'open' : ''}" id="note_area_${item.id}">
+                <textarea id="note_ta_${item.id}" placeholder="Add your notes here…" oninput="saveNote('${item.id}')">${escapedNote}</textarea>
+                <div class="note-saved" id="note_saved_${item.id}">✓ Saved</div>
+              </div>
+              <div class="step-desc">${item.desc}</div>
+              ${termsHtml}
+            </div>
+          </div>`;
+        });
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  
+  main.innerHTML = html;
+}
+
+function updateProgress() {
+  let total = 0, done = 0, notes = 0;
+  [...allModules, ...practiceModules].forEach(m => m.topics.forEach(t => t.items.forEach(i => {
+    total++;
+    if (isChecked(i.id)) done++;
+    if (hasNote(i.id)) notes++;
+  })));
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${done}/${total} (${pct}%)${notes ? ` · 📝${notes}` : ''}`;
+}
+
+function updateUI() { renderSidebar(); renderMain(); updateProgress(); }
+function toggleModule(id) { state['open_'+id] = !state['open_'+id]; saveState(); document.getElementById('module_'+id)?.classList.toggle('open'); }
+function scrollToPeriod(id) { document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'}); document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+function collapseAll() { [...allModules, ...practiceModules].forEach(m => state['open_'+m.id] = false); saveState(); updateUI(); }
+function expandAll() { [...allModules, ...practiceModules].forEach(m => state['open_'+m.id] = true); saveState(); updateUI(); }
+
+function resetAll() {
+  if (!confirm('Reset ALL progress and notes? Cannot be undone.')) return;
+  state = {};
+  openNotes.clear();
+  [...allModules, ...practiceModules].forEach(m => state['open_'+m.id] = true);
+  saveState();
+  updateUI();
+  showToast('Progress reset', 'info');
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.querySelector('.toast-icon').textContent = type==='success'?'✓':type==='error'?'✗':'ℹ';
+  t.querySelector('.toast-msg').textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function exportProgress() {
+  const unit = TIME_UNIT_LABELS[timeUnit];
+  let total=0, done=0, notes=0;
+  [...allModules, ...practiceModules].forEach(m => m.topics.forEach(t => t.items.forEach(i => {
+    total++;
+    if(isChecked(i.id)) done++;
+    if(hasNote(i.id)) notes++;
+  })));
+  const pct = total ? Math.round(done/total*100) : 0;
+  const data = {
+    _meta: { guide:'CPIM 9.0 Flexible Study Tracker', exported:new Date().toISOString(), progress:`${done}/${total} (${pct}%)`, notes, studyPeriods, timeUnit },
+    state, studyPeriods, timeUnit
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cpim9-progress_${studyPeriods}${unit.abbrev.toLowerCase()}_${new Date().toISOString().slice(0,10)}_${pct}pct.json`;
+  a.click();
+  showToast(`Saved — ${pct}% complete, ${notes} notes`, 'success');
+}
+
+function importProgress(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      state = data.state || data;
+      studyPeriods = data.studyPeriods || data.studyDays || 10;
+      timeUnit = data.timeUnit || 'day';
+      openNotes.clear();
+      saveState();
+      const unit = TIME_UNIT_LABELS[timeUnit];
+      document.getElementById('periodsInput').value = studyPeriods;
+      document.getElementById('daysBadge').textContent = `${studyPeriods}-${unit.abbrev}`;
+      updateUI();
+      showToast('Progress loaded', 'success');
+    } catch(err) {
+      showToast('Invalid file', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('cpim9_theme', next);
+  showToast(`${next === 'light' ? '☀️ Light' : '🌙 Dark'} mode`, 'info');
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem('cpim9_theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+}
+
+// ========== INIT ==========
+loadTheme();
+loadState();
+if (Object.keys(state).length === 0) {
+  [...allModules, ...practiceModules].forEach(m => state['open_'+m.id] = true);
+  saveState();
+}
+const initUnit = TIME_UNIT_LABELS[timeUnit];
+document.getElementById('daysBadge').textContent = `${studyPeriods}-${initUnit.abbrev}`;
+updateUI();
+</script>
+</body>
+</html>
