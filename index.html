@@ -38,6 +38,11 @@ a:hover{text-decoration:underline}
 .top-bar .logo span{color:var(--accent)}
 .top-bar .logo .badge{font-size:10px;background:var(--accent-dim);color:var(--accent);padding:2px 7px;border-radius:4px;font-weight:600;letter-spacing:.5px}
 .top-bar .logo .new-badge{font-size:9px;background:#22c55e;color:#fff;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:4px}
+.topic-group-title.cases{color:var(--teal)}
+.step.case-item{border-left:3px solid var(--teal);padding-left:12px;margin-left:-12px;background:linear-gradient(90deg,rgba(45,212,191,.08) 0%,transparent 40%);border-radius:4px}
+.tag.critical{background:var(--red);color:#fff}
+.worksheet-btn{background:none;border:1px solid var(--teal);color:var(--teal);font-size:12px;padding:2px 8px;border-radius:5px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;text-decoration:none;font-weight:500}
+.worksheet-btn:hover{background:rgba(45,212,191,.1);text-decoration:none}
 .progress-wrap{flex:1;max-width:480px;display:flex;align-items:center;gap:12px}
 .progress-bar-outer{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
 .progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width .5s}
@@ -307,6 +312,32 @@ html[data-font="xl"]{--font-scale:1.2}
 .key-terms-list{font-size:calc(12px * var(--font-scale))}
 .exam-info h3{font-size:calc(16px * var(--font-scale))}
 .nav-item{font-size:calc(13px * var(--font-scale))}
+/* Carousel Mode */
+.view-toggle{display:flex;gap:4px;margin-left:auto}
+.view-btn{padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-dim);font-size:11px;cursor:pointer;transition:all .2s}
+.view-btn:hover{border-color:var(--accent);color:var(--accent)}
+.view-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.carousel-container{position:relative;overflow:hidden}
+.carousel-nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0;margin-bottom:16px}
+.carousel-nav-btn{width:48px;height:48px;border-radius:50%;border:2px solid var(--border);background:var(--bg-card);color:var(--text);font-size:20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.carousel-nav-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.carousel-nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.carousel-indicator{display:flex;align-items:center;gap:12px}
+.carousel-dots{display:flex;gap:6px}
+.carousel-dot{width:10px;height:10px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s}
+.carousel-dot:hover{background:var(--text-dim)}
+.carousel-dot.active{background:var(--accent);transform:scale(1.2)}
+.carousel-label{font-size:14px;font-weight:600;color:var(--text-bright);font-family:'JetBrains Mono',monospace}
+.carousel-slide{display:none;animation:slideIn .3s ease}
+.carousel-slide.active{display:block}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInReverse{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.carousel-slide.slide-reverse{animation:slideInReverse .3s ease}
+.carousel-swipe-hint{text-align:center;font-size:11px;color:var(--text-dim);padding:8px 0;display:none}
+@media(max-width:900px){.carousel-swipe-hint{display:block}}
+.list-view .carousel-nav,.list-view .carousel-swipe-hint{display:none}
+.list-view .carousel-slide{display:block;animation:none}
+.carousel-view .main{padding-bottom:120px}
 </style>
 </head>
 <body>
@@ -441,10 +472,9 @@ html[data-font="xl"]{--font-scale:1.2}
 
 <script>
 // ========== USER CREDENTIALS (loaded from external CSV) ==========
-let validUsers = {}; // {email: {password, role}}
+let validUsers = {};
 let usersLoaded = false;
 
-// Fallback for local testing (when fetch fails due to CORS)
 const FALLBACK_USERS = {
   'hala.elouarrak@toronto.ascm.org': { password: 'Teitoklein1124', role: 'admin' }
 };
@@ -521,7 +551,6 @@ function showApp() {
   document.getElementById('userEmail').textContent = currentUser;
   document.getElementById('userEmailMobile').textContent = currentUser;
   
-  // Show admin button if admin
   const isAdminUser = isAdmin();
   document.getElementById('adminBtn').style.display = isAdminUser ? 'inline-block' : 'none';
   document.getElementById('adminBtnMobile').style.display = isAdminUser ? 'block' : 'none';
@@ -534,11 +563,10 @@ function toggleMobileMenu() {
   menu.classList.toggle('show');
 }
 
-// Close mobile menu when clicking outside
 document.addEventListener('click', (e) => {
   const menu = document.getElementById('mobileMenu');
   const toggle = document.querySelector('.menu-toggle');
-  if (menu && !menu.contains(e.target) && !toggle.contains(e.target)) {
+  if (menu && toggle && !menu.contains(e.target) && !toggle.contains(e.target)) {
     menu.classList.remove('show');
   }
 });
@@ -629,7 +657,6 @@ async function commitToGitHub() {
   try {
     showAdminStatus('Fetching current file...', 'success');
     
-    // Get current file SHA (needed for update)
     let sha = null;
     try {
       const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`, {
@@ -643,10 +670,9 @@ async function commitToGitHub() {
     
     showAdminStatus('Committing...', 'success');
     
-    // Commit the file
     const body = {
       message: `Update users.csv via CPIM Tracker admin panel`,
-      content: btoa(csvContent), // base64 encode
+      content: btoa(csvContent),
       branch: branch
     };
     if (sha) body.sha = sha;
@@ -662,7 +688,7 @@ async function commitToGitHub() {
     
     if (putRes.ok) {
       showAdminStatus('✓ Committed successfully!', 'success');
-      document.getElementById('githubToken').value = ''; // Clear token
+      document.getElementById('githubToken').value = '';
     } else {
       const err = await putRes.json();
       showAdminStatus(`Error: ${err.message}`, 'error');
@@ -691,7 +717,6 @@ async function checkSession() {
   }
 }
 
-// Handle Enter key on login form
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('loginEmail').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
   document.getElementById('loginPassword').addEventListener('keypress', e => { if (e.key === 'Enter') attemptLogin(); });
@@ -918,6 +943,111 @@ const allModules = [
   }
 ];
 
+// ========== CASE STUDIES (mapped to CPIM 9.0 modules) ==========
+// Native cert for these cases — includes Tier-3 depth CSCP skipped (Cases 1, 2, 6, 9, 14, 19, 22).
+// Check semantics: Read + Attempt + Debrief.
+const caseStudies = {
+  mod1: [
+    { id: 'cs12', title: 'Case 12 — Financial KPIs', desc: 'Cash-to-cash, DIO, DSO, DPO, current/quick/debt ratios. Anchors ECM M1.D KPIs & Performance.', priority: 'high', terms: ['cash-to-cash cycle', 'DIO', 'DSO', 'DPO', 'current ratio', 'quick ratio', 'net profit margin'] },
+    { id: 'cs15', title: 'Case 15 — Financial Analysis (ROI/Payback)', desc: 'Investment analysis for supply chain decisions. Pair with Case 29 to weigh green initiative economics.', priority: 'high', terms: ['ROI', 'payback period', 'benefit-cost ratio', 'profitability index'] },
+    { id: 'cs20', title: 'Case 20 — Risk Rating & PERT', desc: 'ECM M1.E Risk Management — probability × impact scoring, response strategies, PERT project estimation.', priority: 'high', terms: ['risk rating', 'probability', 'impact', 'PERT estimate', 'variance', 'risk prioritization'] },
+    { id: 'cs29', title: 'Case 29 — Sustainability & Triple Bottom Line', desc: 'ECM M1.F Sustainability — TBL, Scope 1/2/3 emissions, UN Global Compact, GRI, sustainable procurement.', priority: 'high', terms: ['triple bottom line', 'Scope 1/2/3 emissions', 'UN Global Compact', 'GRI Standards', 'carbon footprint'] }
+  ],
+  mod2: [
+    { id: 'cs13', title: 'Case 13 — S&OP Planning Grid (Level/Chase/Hybrid)', desc: 'THE anchor case for M2. Group exercise: assign teams a strategy to defend on cost, service, workforce.', priority: 'high', terms: ['S&OP', 'level strategy', 'chase strategy', 'hybrid strategy', 'aggregate planning', 'workforce planning'] }
+  ],
+  mod3: [
+    { id: 'cs10', title: 'Case 10 — Forecasting Methods (SMA/WMA/ES)', desc: 'ECM M3.C Time Series Analysis — compare methods; emphasize responsiveness vs stability trade-off.', priority: 'high', terms: ['simple moving average', 'weighted moving average', 'exponential smoothing', 'alpha smoothing constant'] },
+    { id: 'cs07', title: 'Case 7 — Forecast Error Metrics', desc: 'ECM M3.D Forecast Monitoring — MAD, MAPE, MSE, CFE, tracking signal, bias detection.', priority: 'high', terms: ['MAD', 'MAPE', 'MSE', 'CFE', 'tracking signal', 'forecast bias'] },
+    { id: 'cs16', title: 'Case 16 — Seasonality & Indices', desc: 'Seasonal indices and deseasonalization — turn raw history into an actionable forecast.', priority: 'high', terms: ['seasonal index', 'deseasonalization', 'seasonal forecast'] },
+    { id: 'cs28', title: 'Case 28 — Customer Segmentation & CRM Metrics', desc: 'ECM M3.A Customer Management — segmentation by CLV, service levels, perfect order fulfillment, NPS.', priority: 'medium', terms: ['customer segmentation', 'CLV', 'perfect order fulfillment', 'fill rate', 'on-time delivery', 'CRM'] }
+  ],
+  mod4: [
+    { id: 'cs01', title: 'Case 1 — MRP Multi-Level Explosion', desc: 'CPIM-CRITICAL · The core MRP mechanics case. Full record: gross req → PAB → net req → planned orders across BOM levels.', priority: 'high', terms: ['MRP', 'multi-level BOM', 'gross requirements', 'scheduled receipts', 'PAB', 'net requirements', 'planned order release', 'low-level code'] },
+    { id: 'cs02', title: 'Case 2 — ATP Methods (Discrete & Cumulative)', desc: 'CPIM-CRITICAL · ECM M4.A ATP & CTP. Discrete and cumulative ATP methods with time-fenced order promising.', priority: 'high', terms: ['available-to-promise (ATP)', 'discrete ATP', 'cumulative ATP', 'capable-to-promise (CTP)', 'time fence'] },
+    { id: 'cs14', title: 'Case 14 — RCCP Load Analysis', desc: 'CPIM-CRITICAL · ECM M4.B Rough-Cut Capacity Planning. Bill of resources, load vs capacity, MPS feasibility.', priority: 'high', terms: ['rough-cut capacity planning (RCCP)', 'bill of resources', 'load profile', 'capacity vs load', 'work center'] },
+    { id: 'cs19', title: 'Case 19 — BOM Explosion', desc: 'CPIM-CRITICAL · Parent-component logic, low-level coding, dependent demand calculation across BOM tree.', priority: 'high', terms: ['bill of material (BOM)', 'BOM explosion', 'parent-component', 'low-level code', 'dependent demand'] }
+  ],
+  mod5: [
+    { id: 'cs27', title: 'Case 27 — Supplier Performance Scorecard', desc: 'ECM M5.B Supplier Relationship Management — weighted scorecard, Kraljic matrix, relationship strategy.', priority: 'high', terms: ['supplier scorecard', 'Kraljic matrix', 'strategic/leverage/bottleneck/routine', 'SRM'] },
+    { id: 'cs24', title: 'Case 24 — Transportation Mode Selection', desc: 'ECM M5.C Logistics methods — total logistics cost across modes including in-transit inventory.', priority: 'high', terms: ['total logistics cost', 'transportation modes', 'in-transit inventory', 'FTL/LTL/intermodal', '3PL'] },
+    { id: 'cs25', title: 'Case 25 — Incoterms® 2020 & Trade', desc: 'International sourcing terms — risk transfer, landed cost, import duties. Responsibility matrix is a study aid.', priority: 'high', terms: ['EXW', 'FCA', 'CIF', 'DAP', 'DDP', 'risk transfer', 'landed cost', 'import duties'] },
+    { id: 'cs30', title: 'Case 30 — Supplier Development & CPFR ROI', desc: 'ECM M5.D — invest-to-improve economics; CPFR value case; cost of poor supplier quality.', priority: 'medium', terms: ['supplier development ROI', 'CPFR', 'collaborative planning', 'cost of poor quality'] }
+  ],
+  mod6: [
+    { id: 'cs08', title: 'Case 8 — Inventory Metrics', desc: 'ECM M6.C — inventory turns, days of supply, carrying cost. Use before Case 3 for logical sequencing.', priority: 'high', terms: ['inventory turnover', 'days of supply', 'carrying cost', 'ABC classification'] },
+    { id: 'cs31', title: 'Case 31 — ABC Analysis', desc: 'ECM M6.A Item segmentation — Pareto 80/20 applied to inventory. A ≤ 80% value, B ≤ 95%, C = rest.', priority: 'high', terms: ['ABC classification', 'Pareto principle', 'annual dollar usage', 'differentiated control policy'] },
+    { id: 'cs04', title: 'Case 4 — EOQ Analysis', desc: 'ECM M6.B Fixed lot sizing — EOQ = √(2DS/H). Include constraint analysis and sensitivity to cost inputs.', priority: 'high', terms: ['EOQ', 'total inventory cost', 'ordering vs carrying trade-off', 'sensitivity analysis'] },
+    { id: 'cs05', title: 'Case 5 — Safety Stock & Service Level', desc: 'ECM M6.B — SS = Z × σ × √LT. Service level ↔ inventory cost trade-off. Reorder point calculation.', priority: 'high', terms: ['safety stock', 'service level', 'Z-factor', 'demand variability', 'lead time variability', 'reorder point'] },
+    { id: 'cs03', title: 'Case 3 — Inventory Costing (FIFO/LIFO/WA)', desc: 'ECM M6.C Inventory valuation — matches ECM sample Q4. Financial statement impact of costing method.', priority: 'high', terms: ['FIFO', 'LIFO', 'weighted average', 'COGS', 'ending inventory valuation'] },
+    { id: 'cs23', title: 'Case 23 — Periodic Review System', desc: 'ECM M6.B Push vs pull — continuous (ROP) vs periodic review comparison; when to use each.', priority: 'medium', terms: ['periodic review', 'continuous review', 'reorder point', 'review interval'] },
+    { id: 'cs26', title: 'Case 26 — Reverse Logistics & Waste Hierarchy', desc: 'ECM M6.E Returns & Disposition — 5 disposition paths mapped to waste hierarchy. Circular economy.', priority: 'medium', terms: ['reverse logistics', 'waste hierarchy', 'reduce/reuse/recycle/recover/dispose', 'circular economy'] }
+  ],
+  mod7: [
+    { id: 'cs06', title: 'Case 6 — Capacity & Critical Ratio', desc: 'CPIM-CRITICAL · Rated/demonstrated capacity + Critical Ratio dispatching (CR = time remaining / work remaining).', priority: 'high', terms: ['rated capacity', 'demonstrated capacity', 'utilization', 'efficiency', 'critical ratio', 'dispatch priority'] },
+    { id: 'cs22', title: 'Case 22 — Lead Time Elements', desc: 'CPIM-CRITICAL · ECM M7.A — queue + setup + run + wait + move. Where to attack for lead time reduction.', priority: 'high', terms: ['lead time', 'queue time', 'setup time', 'run time', 'wait time', 'move time'] },
+    { id: 'cs09', title: 'Case 9 — Lean Scheduling', desc: 'CPIM-CRITICAL · ECM M7.A Pull environment — takt time, mixed-model scheduling, line balancing, heijunka.', priority: 'high', terms: ['takt time', 'mixed-model scheduling', 'line balancing', 'heijunka', 'rate-based scheduling'] },
+    { id: 'cs17', title: 'Case 17 — TOC / Constraints', desc: 'ECM M7.A Bottleneck management — five focusing steps, drum-buffer-rope, throughput accounting.', priority: 'high', terms: ['theory of constraints', 'bottleneck', 'drum-buffer-rope', 'throughput', 'five focusing steps'] },
+    { id: 'cs21', title: 'Case 21 — Kanban System Design', desc: 'ECM M7.A Pull environment — kanban quantity formula, replenishment signal design, WIP control.', priority: 'medium', terms: ['kanban', 'pull system', 'WIP limits', 'kanban quantity', 'replenishment signal'] }
+  ],
+  mod8: [
+    { id: 'cs18', title: 'Case 18 — Facility Location (Center of Gravity)', desc: 'ECM M8.A Network configuration — center of gravity + qualitative factors for DC placement.', priority: 'high', terms: ['center of gravity', 'network design', 'facility location', 'total transportation cost', 'DC placement'] }
+  ],
+  mod9: [
+    { id: 'cs11', title: 'Case 11 — Quality Metrics', desc: 'ECM M9.A — OEE, process capability (Cp/Cpk), perfect order fulfillment. Quality tool selection.', priority: 'high', terms: ['OEE', 'process capability', 'Cpk', 'perfect order fulfillment', 'quality metrics'] },
+    { id: 'cs32', title: 'Case 32 — Pareto Analysis (Vital Few Defects)', desc: 'ECM M9.B CI — 80/20 applied to defect causes. Where to focus root-cause elimination effort.', priority: 'high', terms: ['Pareto analysis', '80/20 principle', 'vital few', 'defect analysis', 'root cause prioritization'] }
+  ]
+};
+
+// Inject case studies as FIRST topic group in each module
+allModules.forEach(mod => {
+  const cases = caseStudies[mod.id];
+  if (cases && cases.length) {
+    mod.topics.unshift({ group: '📋 Case Studies (Pre-work · Read + Attempt + Debrief)', items: cases, isCases: true });
+  }
+});
+
+// ========== CASE WORKSHEET FILE MAP ==========
+// Files at repo root — same filenames as CSCP tracker.
+const CASE_WORKSHEETS = {
+  1: 'Case01_MRP_Multi_Level_worksheet.xlsx',
+  2: 'Case02_ATP_Methods_worksheet.xlsx',
+  3: 'Case03_Inventory_Costing_worksheet.xlsx',
+  4: 'Case04_EOQ_Analysis_worksheet.xlsx',
+  5: 'Case05_Safety_Stock_worksheet.xlsx',
+  6: 'Case06_Capacity_CR_worksheet.xlsx',
+  7: 'Case07_Forecast_Error_worksheet.xlsx',
+  8: 'Case08_Inventory_Metrics_worksheet.xlsx',
+  9: 'Case09_Lean_Scheduling_worksheet.xlsx',
+  10: 'Case10_Forecast_Methods_worksheet.xlsx',
+  11: 'Case11_Quality_Metrics_worksheet.xlsx',
+  12: 'Case12_Financial_KPIs_worksheet.xlsx',
+  13: 'Case13_S_OP_Planning_Grid_worksheet.xlsx',
+  14: 'Case14_RCCP_Load_worksheet.xlsx',
+  15: 'Case15_Financial_Analysis_worksheet.xlsx',
+  16: 'Case16_Seasonality_worksheet.xlsx',
+  17: 'Case17_TOC_Constraints_worksheet.xlsx',
+  18: 'Case18_Location_Analysis_worksheet.xlsx',
+  19: 'Case19_BOM_Explosion_worksheet.xlsx',
+  20: 'Case20_Risk_PERT_worksheet.xlsx',
+  21: 'Case21_Kanban_worksheet.xlsx',
+  22: 'Case22_Lead_Time_worksheet.xlsx',
+  23: 'Case23_Periodic_Review_worksheet.xlsx',
+  24: 'Case24_Transport_Mode_worksheet.xlsx',
+  25: 'Case25_Incoterms_Trade_worksheet.xlsx',
+  26: 'Case26_Reverse_Logistics_worksheet.xlsx',
+  27: 'Case27_Supplier_Scorecard_worksheet.xlsx',
+  28: 'Case28_CRM_Metrics_worksheet.xlsx',
+  29: 'Case29_Sustainability_TBL_worksheet.xlsx',
+  30: 'Case30_Supplier_Dev_CPFR_worksheet.xlsx',
+  31: 'Case31_ABC_Analysis_worksheet.xlsx',
+  32: 'Case32_Pareto_Analysis_worksheet.xlsx'
+};
+function getCaseWorksheet(itemId) {
+  const m = /^cs0*(\d+)/.exec(itemId);
+  return m ? CASE_WORKSHEETS[parseInt(m[1], 10)] || null : null;
+}
+
 // Practice modules (always at end)
 const practiceModules = [
   {
@@ -947,7 +1077,33 @@ const practiceModules = [
         { id: 'g1b3', title: 'MRP record completion', desc: 'PAB, net req, planned orders — do 3 problems', terms: ['MRP', 'projected available balance'] },
         { id: 'g1b4', title: 'ATP calculation', desc: 'Discrete method — do 3 problems', terms: ['available-to-promise'] },
         { id: 'g1b5', title: 'Critical Ratio & Inventory turns', desc: 'Time remaining / work remaining; COGS/Avg Inv', terms: ['critical ratio', 'inventory turnover'] }
-      ]}
+      ]},
+      { group: '📋 Case Re-attempts · Modules 1-3 (Strategy + S&OP + Demand)', items: [
+        { id: 'cs13_r', title: 'Case 13 — S&OP Planning Grid (re-attempt)', desc: 'Highest-value M2 case. Re-attempt without notes; defend level vs chase vs hybrid choice in 3 sentences.', priority: 'high', terms: ['level', 'chase', 'hybrid', 'S&OP', 'strategy rationale'] },
+        { id: 'cs07_r', title: 'Case 7 — Forecast Error (re-attempt)', desc: 'Interpret tracking signal & bias — do NOT re-derive MAD/MAPE. What action would you recommend to the S&OP team?', priority: 'high', terms: ['tracking signal', 'bias', 'interpretation', 'action'] },
+        { id: 'cs12_r', title: 'Case 12 — Financial KPIs (re-attempt)', desc: 'Re-read cash-to-cash + DIO/DSO/DPO scenario. Which lever moves C2C fastest?', priority: 'high', terms: ['C2C', 'DIO', 'DSO', 'DPO', 'lever selection'] },
+        { id: 'cs20_r', title: 'Case 20 — Risk & PERT (re-attempt)', desc: 'Risk rating = P × I → prioritize response (avoid/reduce/transfer/accept). PERT as improvement project.', priority: 'high', terms: ['risk rating', 'P×I', 'response strategy'] }
+      ], isCases: true },
+      { group: '📋 Case Re-attempts · Modules 4-5 (Internal + External Supply)', items: [
+        { id: 'cs01_r', title: 'Case 1 — MRP Multi-Level (re-attempt)', desc: 'CPIM-critical. Full record cold: gross req → scheduled receipts → PAB → net req → planned orders.', priority: 'high', terms: ['MRP mechanics', 'PAB', 'planned order release'] },
+        { id: 'cs02_r', title: 'Case 2 — ATP Methods (re-attempt)', desc: 'CPIM-critical. Discrete vs cumulative ATP — pick the right method for the environment.', priority: 'high', terms: ['discrete ATP', 'cumulative ATP', 'order promising'] },
+        { id: 'cs14_r', title: 'Case 14 — RCCP Load (re-attempt)', desc: 'CPIM-critical. Bill of resources → load profile → capacity gap. Is the MPS feasible?', priority: 'high', terms: ['RCCP', 'load vs capacity', 'MPS feasibility'] },
+        { id: 'cs19_r', title: 'Case 19 — BOM Explosion (re-attempt)', desc: 'CPIM-critical. Low-level coding + dependent demand explosion. Speed check.', priority: 'high', terms: ['BOM explosion', 'low-level code', 'dependent demand'] },
+        { id: 'cs27_r', title: 'Case 27 — Supplier Scorecard (re-attempt)', desc: 'Weight KPIs before scoring. Map winner to Kraljic quadrant → relationship strategy.', priority: 'high', terms: ['weighted scorecard', 'Kraljic', 'SRM strategy'] }
+      ], isCases: true },
+      { group: '📋 Case Re-attempts · Modules 6-7 (Inventory + Detailed Scheduling — high-weight)', items: [
+        { id: 'cs04_r', title: 'Case 4 — EOQ (re-attempt)', desc: 'EOQ formula cold + sensitivity: what happens if D doubles or H halves?', priority: 'high', terms: ['EOQ', 'sensitivity', 'total cost curve'] },
+        { id: 'cs05_r', title: 'Case 5 — Safety Stock (re-attempt)', desc: 'SS = Z × σ × √LT. Frame as service-level vs inventory-cost trade-off.', priority: 'high', terms: ['safety stock formula', 'service level trade-off'] },
+        { id: 'cs03_r', title: 'Case 3 — Inventory Costing (re-attempt)', desc: 'ECM sample Q4 scenario. Financial statement impact of FIFO vs LIFO in inflation.', priority: 'high', terms: ['FIFO', 'LIFO', 'COGS impact', 'inflation'] },
+        { id: 'cs08_r', title: 'Case 8 — Inventory Metrics (re-attempt)', desc: 'Turns, DOS, carrying cost — key terms. Interpret without recomputing.', priority: 'high', terms: ['inventory turnover', 'days of supply'] },
+        { id: 'cs06_r', title: 'Case 6 — Capacity & Critical Ratio (re-attempt)', desc: 'CPIM-critical CR drill. CR < 1 = behind; CR = 1 = on time; CR > 1 = ahead. Sequence the jobs.', priority: 'high', terms: ['critical ratio', 'dispatch priority', 'capacity utilization'] },
+        { id: 'cs22_r', title: 'Case 22 — Lead Time (re-attempt)', desc: 'CPIM-critical. Which lead time element dominates? Attack the biggest wedge.', priority: 'high', terms: ['lead time elements', 'queue reduction', 'setup reduction'] }
+      ], isCases: true },
+      { group: '📋 Case Re-attempts · Modules 8-9 (Distribution + Quality/CI/Tech)', items: [
+        { id: 'cs18_r', title: 'Case 18 — Location Analysis (re-attempt)', desc: 'Center of gravity gets you the math answer; qualitative factors get you the right answer.', priority: 'medium', terms: ['center of gravity', 'qualitative factors'] },
+        { id: 'cs11_r', title: 'Case 11 — Quality Metrics (re-attempt)', desc: 'OEE = Availability × Performance × Quality. Which factor to attack first?', priority: 'high', terms: ['OEE decomposition', 'improvement priority'] },
+        { id: 'cs32_r', title: 'Case 32 — Pareto Analysis (re-attempt)', desc: 'Vital few defect causes — focus root-cause effort where 80% of the impact is.', priority: 'medium', terms: ['Pareto', 'vital few', 'root cause prioritization'] }
+      ], isCases: true }
     ]
   },
   {
@@ -968,15 +1124,17 @@ const practiceModules = [
 ];
 
 // ========== CONFIGURATION ==========
-const TOTAL_CONTENT_HOURS = allModules.reduce((sum, m) => sum + m.hours, 0); // ~26.5 hours for content
-const PRACTICE_HOURS = practiceModules.reduce((sum, m) => sum + m.hours, 0); // 10 hours for practice/review
+const TOTAL_CONTENT_HOURS = allModules.reduce((sum, m) => sum + m.hours, 0);
+const PRACTICE_HOURS = practiceModules.reduce((sum, m) => sum + m.hours, 0);
 const TOTAL_STUDY_HOURS = TOTAL_CONTENT_HOURS + PRACTICE_HOURS;
 const STORAGE_KEY = 'cpim9_flex_tracker_v2';
 
 let state = {};
 let openNotes = new Set();
-let studyPeriods = 10; // default
-let timeUnit = 'day'; // 'day', 'week', 'month'
+let studyPeriods = 10;
+let timeUnit = 'day';
+let viewMode = 'list';
+let currentSlide = 0;
 
 const TIME_UNIT_LABELS = {
   day: { singular: 'Day', plural: 'Days', abbrev: 'DAY', perLabel: 'day' },
@@ -988,7 +1146,6 @@ const TIME_UNIT_LABELS = {
 function generateStudyPlan(numPeriods) {
   const unit = TIME_UNIT_LABELS[timeUnit];
   
-  // Reserve last periods for practice/gap/final if possible
   const practicePeriods = Math.min(3, Math.floor(numPeriods * 0.3));
   const contentPeriods = numPeriods - practicePeriods;
   
@@ -996,10 +1153,8 @@ function generateStudyPlan(numPeriods) {
     return generateCompressedPlan(numPeriods);
   }
   
-  // Calculate hours per content period
   const hoursPerContentPeriod = TOTAL_CONTENT_HOURS / contentPeriods;
   
-  // Distribute modules across content periods
   const plan = [];
   let currentPeriod = { modules: [], totalHours: 0, focus: [] };
   let periodNum = 1;
@@ -1052,7 +1207,7 @@ function generateStudyPlan(numPeriods) {
       period: periodNum,
       title: 'Gap Analysis & Formula Drilling',
       hours: Math.round(practiceHoursPerPeriod * 10) / 10,
-      focus: 'Review every wrong answer — categorize errors — drill formulas',
+      focus: 'Review every wrong answer — categorize errors — drill formulas — case re-attempts',
       modules: [practiceModules[1]]
     });
     periodNum++;
@@ -1171,7 +1326,6 @@ function saveNote(id) {
   saveState();
   const saved = document.getElementById('note_saved_'+id);
   if (saved) { saved.classList.add('show'); setTimeout(() => saved.classList.remove('show'), 1500); }
-  // Update UI elements without full re-render to preserve focus
   const checkEl = document.querySelector(`.step-check[onclick="toggleCheck('${id}')"]`);
   if (checkEl) {
     if (val) checkEl.classList.add('has-note');
@@ -1206,24 +1360,23 @@ function setDuration(periods, newUnit = null) {
   document.getElementById('periodsInput').value = studyPeriods;
   document.getElementById('daysBadge').textContent = `${studyPeriods}-${unit.abbrev}`;
   
-  // Update unit buttons
   document.querySelectorAll('.unit-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === timeUnit);
   });
   
-  // Update preset buttons
   document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.classList.toggle('active', parseInt(btn.dataset.periods) === studyPeriods);
   });
   
-  // Update summary
   const hoursPerPeriod = (TOTAL_STUDY_HOURS / studyPeriods).toFixed(1);
-  document.getElementById('durationSummary').innerHTML = `
+  const summary = document.getElementById('durationSummary');
+  if (summary) summary.innerHTML = `
     <span><strong>${TOTAL_STUDY_HOURS.toFixed(1)}</strong> total hours</span>
     <span><strong>${hoursPerPeriod}</strong> hrs/${unit.perLabel}</span>
     <span><strong>9</strong> modules + practice</span>
   `;
   
+  if (viewMode === 'carousel') currentSlide = 0;
   saveState();
   updateUI();
 }
@@ -1262,6 +1415,7 @@ function renderMain() {
   const studyPlan = generateStudyPlan(studyPeriods);
   const unit = TIME_UNIT_LABELS[timeUnit];
   const main = document.getElementById('mainContent');
+  const isCarousel = viewMode === 'carousel';
   
   let html = `<div class="exam-info">
     <h3>📋 CPIM 9.0 Exam Overview <span class="new-tag">Effective June 1, 2026</span></h3>
@@ -1289,6 +1443,10 @@ function renderMain() {
           <button class="preset-btn ${studyPeriods===14?'active':''}" data-periods="14" onclick="setDuration(14)">14</button>
           <button class="preset-btn ${studyPeriods===21?'active':''}" data-periods="21" onclick="setDuration(21)">21</button>
         </div>
+        <div class="view-toggle">
+          <button class="view-btn ${viewMode==='list'?'active':''}" onclick="setViewMode('list')" title="List view - See all days">☰ List</button>
+          <button class="view-btn ${viewMode==='carousel'?'active':''}" onclick="setViewMode('carousel')" title="Carousel view - One day at a time">◀▶ Flip</button>
+        </div>
       </div>
       <div class="duration-summary" id="durationSummary">
         <span><strong>${TOTAL_STUDY_HOURS.toFixed(1)}</strong> total hours</span>
@@ -1298,8 +1456,23 @@ function renderMain() {
     </div>
   </div>`;
   
-  studyPlan.forEach(p => {
-    html += `<div id="${p.id}">
+  if (isCarousel) {
+    html += `<div class="carousel-nav">
+      <button class="carousel-nav-btn" onclick="carouselPrev()" ${currentSlide === 0 ? 'disabled' : ''}>◀</button>
+      <div class="carousel-indicator">
+        <span class="carousel-label">${unit.singular} ${currentSlide + 1} of ${studyPlan.length}</span>
+        <div class="carousel-dots">${studyPlan.map((_, i) => `<div class="carousel-dot ${i === currentSlide ? 'active' : ''}" onclick="goToSlide(${i})"></div>`).join('')}</div>
+      </div>
+      <button class="carousel-nav-btn" onclick="carouselNext()" ${currentSlide === studyPlan.length - 1 ? 'disabled' : ''}>▶</button>
+    </div>
+    <div class="carousel-swipe-hint">👆 Swipe left/right to navigate</div>`;
+  }
+  
+  html += `<div class="carousel-container" id="carouselContainer">`;
+  
+  studyPlan.forEach((p, idx) => {
+    const slideClass = isCarousel ? `carousel-slide ${idx === currentSlide ? 'active' : ''}` : 'carousel-slide active';
+    html += `<div id="${p.id}" class="${slideClass}" data-slide="${idx}">
       <div class="day-header" data-day="${((p.period - 1) % 14) + 1}">
         <div class="day-number">${unit.singular.charAt(0)}${p.period}</div>
         <div class="day-info"><h2>${p.title}</h2><p>${p.focus}</p></div>
@@ -1330,7 +1503,8 @@ function renderMain() {
         <div class="module-body">`;
       
       mod.topics.forEach(topic => {
-        html += `<div class="topic-group"><div class="topic-group-title">${topic.group}</div>`;
+        const isCases = !!topic.isCases;
+        html += `<div class="topic-group"><div class="topic-group-title${isCases ? ' cases' : ''}">${topic.group}</div>`;
         topic.items.forEach(item => {
           const checked = isChecked(item.id);
           const noteText = getNote(item.id);
@@ -1344,16 +1518,18 @@ function renderMain() {
           else if (item.priority === 'formula') tag = '<span class="tag formula">FORMULA</span>';
           else if (item.priority === 'new') tag = '<span class="tag new">NEW</span>';
           
+          const keyTermsLabel = isCases ? 'CPIM Concepts Tested' : 'Key Terms';
           let termsHtml = '';
           if (item.terms && item.terms.length > 0) {
-            termsHtml = `<div class="key-terms"><div class="key-terms-label">Key Terms</div><div class="key-terms-list">${item.terms.map(t => `<span class="term">${t}</span>`).join('')}</div></div>`;
+            termsHtml = `<div class="key-terms"><div class="key-terms-label">${keyTermsLabel}</div><div class="key-terms-list">${item.terms.map(t => `<span class="term">${t}</span>`).join('')}</div></div>`;
           }
           
-          html += `<div class="step">
+          html += `<div class="step${isCases ? ' case-item' : ''}">
             <div class="step-check ${checked ? 'checked' : ''} ${noteExists ? 'has-note' : ''}" onclick="toggleCheck('${item.id}')">✓</div>
             <div class="step-content ${checked ? 'checked-text' : ''}">
               <div class="step-header">
                 <div class="step-title">${item.title}${tag}</div>
+                ${isCases && getCaseWorksheet(item.id) ? `<a class="worksheet-btn" href="${getCaseWorksheet(item.id)}" target="_blank" rel="noopener" title="Download worksheet">📎 Worksheet</a>` : ''}
                 <button class="note-btn ${noteExists ? 'has-note' : ''} ${noteOpen ? 'open' : ''}" id="note_btn_${item.id}" onclick="toggleNote('${item.id}')">${noteExists ? '📝 Note' : '📝'}</button>
               </div>
               <div class="note-area ${noteOpen ? 'open' : ''}" id="note_area_${item.id}">
@@ -1371,8 +1547,12 @@ function renderMain() {
     });
     html += '</div>';
   });
+  html += '</div>';
   
   main.innerHTML = html;
+  document.body.classList.toggle('carousel-view', isCarousel);
+  document.body.classList.toggle('list-view', !isCarousel);
+  if (isCarousel) setupSwipeGestures();
 }
 
 function updateProgress() {
@@ -1389,7 +1569,21 @@ function updateProgress() {
 
 function updateUI() { renderSidebar(); renderMain(); updateProgress(); }
 function toggleModule(id) { state['open_'+id] = !state['open_'+id]; saveState(); document.getElementById('module_'+id)?.classList.toggle('open'); }
-function scrollToPeriod(id) { document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'}); document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+
+function scrollToPeriod(id) {
+  if (viewMode === 'carousel') {
+    const studyPlan = generateStudyPlan(studyPeriods);
+    const idx = studyPlan.findIndex(p => p.id === id);
+    if (idx >= 0) goToSlide(idx);
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  } else {
+    document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'});
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }
+}
+
 function collapseAll() { [...allModules, ...practiceModules].forEach(m => state['open_'+m.id] = false); saveState(); updateUI(); }
 function expandAll() { [...allModules, ...practiceModules].forEach(m => state['open_'+m.id] = true); saveState(); updateUI(); }
 
@@ -1397,6 +1591,7 @@ function resetAll() {
   if (!confirm('Reset ALL progress and notes? Cannot be undone.')) return;
   state = {};
   openNotes.clear();
+  currentSlide = 0;
   [...allModules, ...practiceModules].forEach(m => state['open_'+m.id] = true);
   saveState();
   updateUI();
@@ -1477,10 +1672,90 @@ function loadTheme() {
   if (saved) document.documentElement.setAttribute('data-theme', saved);
 }
 
+// ========== CAROUSEL ==========
+function setViewMode(mode) {
+  viewMode = mode;
+  localStorage.setItem('cpim9_viewmode', mode);
+  if (mode === 'carousel') currentSlide = 0;
+  updateUI();
+}
+
+function carouselNext() {
+  const studyPlan = generateStudyPlan(studyPeriods);
+  if (currentSlide < studyPlan.length - 1) {
+    currentSlide++;
+    updateCarouselView();
+  }
+}
+
+function carouselPrev() {
+  if (currentSlide > 0) {
+    currentSlide--;
+    updateCarouselView(true);
+  }
+}
+
+function goToSlide(idx) {
+  const studyPlan = generateStudyPlan(studyPeriods);
+  if (idx >= 0 && idx < studyPlan.length) {
+    const reverse = idx < currentSlide;
+    currentSlide = idx;
+    updateCarouselView(reverse);
+  }
+}
+
+function updateCarouselView(reverse = false) {
+  const studyPlan = generateStudyPlan(studyPeriods);
+  const unit = TIME_UNIT_LABELS[timeUnit];
+  const slides = document.querySelectorAll('.carousel-slide');
+  slides.forEach((slide, i) => {
+    slide.classList.remove('active', 'slide-reverse');
+    if (i === currentSlide) {
+      slide.classList.add('active');
+      if (reverse) slide.classList.add('slide-reverse');
+    }
+  });
+  const dots = document.querySelectorAll('.carousel-dot');
+  dots.forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
+  const label = document.querySelector('.carousel-label');
+  if (label) label.textContent = `${unit.singular} ${currentSlide + 1} of ${studyPlan.length}`;
+  const prevBtn = document.querySelector('.carousel-nav-btn:first-child');
+  const nextBtn = document.querySelector('.carousel-nav-btn:last-child');
+  if (prevBtn) prevBtn.disabled = currentSlide === 0;
+  if (nextBtn) nextBtn.disabled = currentSlide === studyPlan.length - 1;
+}
+
+function setupSwipeGestures() {
+  const container = document.getElementById('carouselContainer');
+  if (!container) return;
+  let startX = 0, startY = 0, distX = 0, distY = 0;
+  const threshold = 50;
+  container.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  container.addEventListener('touchmove', e => {
+    distX = e.touches[0].clientX - startX;
+    distY = e.touches[0].clientY - startY;
+  }, { passive: true });
+  container.addEventListener('touchend', () => {
+    if (Math.abs(distX) > Math.abs(distY) && Math.abs(distX) > threshold) {
+      if (distX > 0) carouselPrev();
+      else carouselNext();
+    }
+    distX = 0; distY = 0;
+  });
+}
+
+function loadViewMode() {
+  const saved = localStorage.getItem('cpim9_viewmode');
+  if (saved && (saved === 'list' || saved === 'carousel')) viewMode = saved;
+}
+
 // ========== FONT SIZE ==========
 const FONT_SIZES = ['xs', 'sm', 'md', 'lg', 'xl'];
 const FONT_LABELS = { xs: '80%', sm: '90%', md: '100%', lg: '110%', xl: '120%' };
-let currentFontIdx = 2; // md
+let currentFontIdx = 2;
 
 function loadFontSize() {
   const saved = localStorage.getItem('cpim9_fontsize');
@@ -1517,9 +1792,9 @@ function initApp() {
   updateUI();
 }
 
-// Load theme and font size immediately, but wait for login to init app
 loadTheme();
 loadFontSize();
+loadViewMode();
 </script>
 </body>
 </html>
