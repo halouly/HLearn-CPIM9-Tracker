@@ -338,6 +338,48 @@ html[data-font="xl"]{--font-scale:1.2}
 .list-view .carousel-nav,.list-view .carousel-swipe-hint{display:none}
 .list-view .carousel-slide{display:block;animation:none}
 .carousel-view .main{padding-bottom:120px}
+/* Formula Modal */
+.formula-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10002;display:flex;align-items:center;justify-content:center;padding:20px}
+.formula-modal-overlay.hidden{display:none}
+.formula-modal{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:0;width:100%;max-width:900px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.formula-modal-header{padding:20px 24px;background:linear-gradient(135deg,var(--accent),var(--accent-dim));display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.formula-modal-header h2{font-size:20px;font-weight:800;color:#fff;margin:0;flex:1}
+.formula-modal-header .subtitle{font-size:12px;color:rgba(255,255,255,.85);width:100%;margin-top:2px}
+.formula-modal-actions{display:flex;gap:8px;flex-shrink:0}
+.formula-modal-actions .btn-sm{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff}
+.formula-modal-actions .btn-sm:hover{background:rgba(255,255,255,.25);border-color:#fff}
+.formula-search{padding:12px 24px;border-bottom:1px solid var(--border);background:var(--bg-card)}
+.formula-search input{width:100%;padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none}
+.formula-search input:focus{border-color:var(--accent)}
+.formula-search input::placeholder{color:var(--text-dim);opacity:.6}
+.formula-modal-body{flex:1;overflow-y:auto;padding:20px 24px}
+.formula-module{margin-bottom:24px}
+.formula-module:last-child{margin-bottom:0}
+.formula-module-title{font-size:12px;font-weight:700;color:#fff;padding:6px 12px;border-radius:6px;margin-bottom:12px;display:inline-block;letter-spacing:.5px}
+.formula-module[data-mod="M3"] .formula-module-title{background:#a855f7}
+.formula-module[data-mod="M4"] .formula-module-title{background:#0ea5e9}
+.formula-module[data-mod="M6"] .formula-module-title{background:#eab308;color:#1a1a2e}
+.formula-module[data-mod="M7"] .formula-module-title{background:#ef4444}
+.formula-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:all .2s}
+.formula-card:hover{border-color:var(--accent)}
+.formula-card.hidden{display:none}
+.formula-expr{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--text-bright);margin-bottom:8px;line-height:1.4;word-break:break-word}
+.formula-def{font-size:12.5px;color:var(--text-dim);font-style:italic;margin-bottom:8px;line-height:1.5}
+.formula-line{font-size:13px;margin-bottom:5px;line-height:1.5;display:flex;gap:8px}
+.formula-line-label{font-size:10px;font-weight:800;padding:2px 6px;border-radius:3px;letter-spacing:.5px;flex-shrink:0;height:fit-content;margin-top:2px}
+.formula-line.use .formula-line-label{background:var(--blue);color:#fff}
+.formula-line.trap .formula-line-label{background:var(--red);color:#fff}
+.formula-line-text{color:var(--text);flex:1}
+.formula-no-results{text-align:center;padding:40px;color:var(--text-dim);font-size:13px}
+.btn-formulas{border-color:var(--purple);color:var(--purple)}
+.btn-formulas:hover{background:rgba(177,151,252,.1)}
+@media(max-width:600px){
+  .formula-modal{max-height:95vh}
+  .formula-modal-header{padding:16px}
+  .formula-modal-header h2{font-size:16px}
+  .formula-modal-body{padding:16px}
+  .formula-expr{font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -379,6 +421,7 @@ html[data-font="xl"]{--font-scale:1.2}
       <span class="font-size-label" id="fontSizeLabel">100%</span>
       <button class="btn-sm btn-font" onclick="changeFontSize(1)" title="Increase font size">A+</button>
     </div>
+    <button class="btn-sm btn-formulas" onclick="openFormulaModal()" title="Formula quick sheet">📐 Formulas</button>
     <button class="btn-sm btn-admin" id="adminBtn" onclick="openAdminPanel()" style="display:none">⚙️ Users</button>
     <button class="btn-sm btn-logout" onclick="logout()">Logout</button>
     <button class="btn-sm theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌓</button>
@@ -398,6 +441,7 @@ html[data-font="xl"]{--font-scale:1.2}
       <button class="btn-sm btn-font" onclick="changeFontSize(1)">A+</button>
     </div>
     <div class="menu-divider"></div>
+    <button class="btn-sm btn-formulas" onclick="openFormulaModal();toggleMobileMenu()">📐 Formulas</button>
     <button class="btn-sm btn-admin" id="adminBtnMobile" onclick="openAdminPanel();toggleMobileMenu()" style="display:none">⚙️ Manage Users</button>
     <button class="btn-sm" onclick="toggleTheme();toggleMobileMenu()">🌓 Theme</button>
     <button class="btn-sm" onclick="collapseAll();toggleMobileMenu()">Collapse All</button>
@@ -415,6 +459,26 @@ html[data-font="xl"]{--font-scale:1.2}
 <nav class="sidebar" id="sidebar"></nav>
 <div class="toast" id="toast"><span class="toast-icon"></span><span class="toast-msg"></span></div>
 <main class="main" id="mainContent"></main>
+</div>
+
+<!-- Formula Quick Sheet Modal -->
+<div class="formula-modal-overlay hidden" id="formulaModalOverlay" onclick="if(event.target===this)closeFormulaModal()">
+  <div class="formula-modal">
+    <div class="formula-modal-header">
+      <div style="flex:1">
+        <h2>📐 CPIM 9.0 Formula Quick Sheet</h2>
+        <div class="subtitle">14 signature formulas · Modules 3, 4, 6, 7 (50% of exam)</div>
+      </div>
+      <div class="formula-modal-actions">
+        <a class="btn-sm" href="CPIM9_Formula_QuickSheet.pdf" target="_blank" rel="noopener" download title="Download printable 1-page PDF">📥 PDF</a>
+        <button class="btn-sm" onclick="closeFormulaModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="formula-search">
+      <input type="text" id="formulaSearchInput" placeholder="Search formula, term, module… (e.g. EOQ, safety stock, ATP)" oninput="filterFormulas(this.value)">
+    </div>
+    <div class="formula-modal-body" id="formulaModalBody"></div>
+  </div>
 </div>
 
 <!-- Admin Panel Modal -->
@@ -1779,6 +1843,103 @@ function changeFontSize(dir) {
   localStorage.setItem('cpim9_fontsize', FONT_SIZES[currentFontIdx]);
   applyFontSize();
 }
+
+// ========== FORMULA QUICK SHEET ==========
+const FORMULA_SHEET = [
+  { mod: 'M4', modTitle: 'M4 — Plan and Manage Internal Supply Sources (12%)', formulas: [
+    { expr: 'PAB = Prior PAB + Sched Receipts + Planned Receipts − Gross Reqs', def: 'Projected Available Balance carried period to period in the MRP record.', use: 'Every MRP record question. Row that drives net requirements.', trap: 'Include planned receipts only in weeks past the planning time fence.' },
+    { expr: 'Net Requirements = Gross Reqs − Sched Receipts − Prior PAB', def: 'Shortage that triggers a planned order release.', use: 'Only calculate when result > 0. Otherwise net req = 0.', trap: 'Subtract safety stock from prior PAB before netting if SS is used.' },
+    { expr: 'ATP (Discrete) = MPS + Sched Receipts − Σ Cust Orders (until next MPS)', def: 'Uncommitted inventory in a specific bucket.', use: 'Order promising when MPS receipts are period-specific.', trap: 'Sum customer orders only UNTIL the next MPS receipt, not to end of horizon.' },
+    { expr: 'ATP (Cumulative) = Prior ATP + Period ATP', def: 'Rolling running total of ATP across buckets.', use: 'When shortages in one period can be covered by future supply.', trap: 'Never negative — a negative cumulative ATP means the promise fails.' }
+  ]},
+  { mod: 'M6', modTitle: 'M6 — Plan and Manage Inventory (14%)', formulas: [
+    { expr: 'EOQ = √(2DS / H)', def: 'D=annual demand, S=order cost, H=annual holding cost per unit.', use: 'Fixed order quantity when demand is stable and independent.', trap: 'H is per-unit per-YEAR. If given as % of unit cost, multiply first.' },
+    { expr: 'Safety Stock = Z × σ × √LT', def: 'Z=service factor, σ=demand std dev per period, LT=lead time in periods.', use: 'Buffer against demand variability during lead time.', trap: '√LT (not LT). Z=1.65 for 95%, Z=2.33 for 99%. Match σ units to LT units.' },
+    { expr: 'Reorder Point = (D̄ × LT) + SS', def: 'Inventory level that triggers a replenishment order.', use: 'Continuous review (perpetual) inventory systems.', trap: 'D̄ is AVERAGE demand per period, not total. LT and D̄ must share time unit.' },
+    { expr: 'Inventory Turnover = COGS / Average Inventory', def: 'How many times inventory sells through per year.', use: 'Efficiency benchmark. Higher = leaner (but too high = stockouts).', trap: 'Use COGS (not sales). Average inventory = (beginning + ending) / 2.' },
+    { expr: 'Days of Supply = Average Inventory / Daily Usage', def: 'How many days of demand current inventory covers.', use: 'Inverse view of turns. Easier for operational conversations.', trap: 'Daily usage = annual demand / 365 (or 250 workdays — check the question).' }
+  ]},
+  { mod: 'M7', modTitle: 'M7 — Plan, Manage, Execute Detailed Schedules (12%)', formulas: [
+    { expr: 'Critical Ratio = Time Remaining / Work Remaining', def: 'Time until due date divided by lead time still needed.', use: 'Dispatch priority. CR < 1 = behind; = 1 = on time; > 1 = ahead.', trap: 'Lowest CR runs FIRST (most urgent). Negative CR = already late.' },
+    { expr: 'Utilization = Actual Hours Worked / Available Hours', def: 'How much of available capacity was actually used.', use: 'Capacity performance monitoring.', trap: 'Not the same as efficiency. Utilization can be high with low output.' },
+    { expr: 'Efficiency = Standard Hours Earned / Actual Hours Worked', def: 'How productively the hours were spent vs standard.', use: 'Labor productivity benchmark against engineered standards.', trap: '>100% means beating standard, not over capacity. Check the ratio direction.' },
+    { expr: 'Rated Capacity = Available × Utilization × Efficiency', def: 'Sustainable output level of a work center.', use: 'RCCP and detailed capacity planning.', trap: 'Utilization AND efficiency both < 1, so rated < available. Don\'t skip either.' },
+    { expr: 'Takt Time = Available Production Time / Customer Demand', def: 'Pace of production required to meet demand.', use: 'Line balancing in lean/pull environments.', trap: 'Available time excludes breaks. Demand is for the SAME time window.' }
+  ]},
+  { mod: 'M3', modTitle: 'M3 — Plan and Manage Demand (12%)', formulas: [
+    { expr: 'Tracking Signal = CFE / MAD', def: 'Cumulative forecast error divided by mean absolute deviation.', use: 'Detect forecast bias. |TS| > 4 = investigate; > 7 = model broken.', trap: 'Sign matters — negative TS = over-forecasting, positive = under-forecasting.' }
+  ]}
+];
+
+function renderFormulaSheet() {
+  const body = document.getElementById('formulaModalBody');
+  let html = '';
+  FORMULA_SHEET.forEach(group => {
+    html += `<div class="formula-module" data-mod="${group.mod}">`;
+    html += `<div class="formula-module-title">${group.modTitle}</div>`;
+    group.formulas.forEach(f => {
+      const searchText = `${f.expr} ${f.def} ${f.use} ${f.trap} ${group.modTitle}`.toLowerCase();
+      html += `<div class="formula-card" data-search="${searchText.replace(/"/g,'&quot;')}">
+        <div class="formula-expr">${f.expr}</div>
+        <div class="formula-def">${f.def}</div>
+        <div class="formula-line use"><span class="formula-line-label">USE</span><span class="formula-line-text">${f.use}</span></div>
+        <div class="formula-line trap"><span class="formula-line-label">TRAP</span><span class="formula-line-text">${f.trap}</span></div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  body.innerHTML = html;
+}
+
+function openFormulaModal() {
+  renderFormulaSheet();
+  document.getElementById('formulaModalOverlay').classList.remove('hidden');
+  const input = document.getElementById('formulaSearchInput');
+  input.value = '';
+  setTimeout(() => input.focus(), 100);
+}
+
+function closeFormulaModal() {
+  document.getElementById('formulaModalOverlay').classList.add('hidden');
+}
+
+function filterFormulas(query) {
+  const q = query.trim().toLowerCase();
+  const cards = document.querySelectorAll('.formula-card');
+  const modules = document.querySelectorAll('.formula-module');
+  let anyMatch = false;
+
+  cards.forEach(card => {
+    const match = !q || card.dataset.search.includes(q);
+    card.classList.toggle('hidden', !match);
+    if (match) anyMatch = true;
+  });
+
+  modules.forEach(mod => {
+    const visibleCards = mod.querySelectorAll('.formula-card:not(.hidden)');
+    mod.style.display = visibleCards.length === 0 ? 'none' : '';
+  });
+
+  let noResults = document.getElementById('formulaNoResults');
+  if (!anyMatch && q) {
+    if (!noResults) {
+      noResults = document.createElement('div');
+      noResults.id = 'formulaNoResults';
+      noResults.className = 'formula-no-results';
+      noResults.textContent = 'No formulas match. Try "EOQ", "safety stock", "MRP", "ATP", "critical ratio"…';
+      document.getElementById('formulaModalBody').appendChild(noResults);
+    }
+  } else if (noResults) {
+    noResults.remove();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('formulaModalOverlay');
+    if (modal && !modal.classList.contains('hidden')) closeFormulaModal();
+  }
+});
 
 // ========== INIT ==========
 function initApp() {
